@@ -15,7 +15,7 @@
   ],
   "url": "https://github.com/atnoslen/TagIt",
   "manifest": "https://github.com/TagIt/releases/latest/download/module.json",
-  "download": "Auto Replaced",
+  "download": "https://github.com/TagIt/releases/latest/download/module.zip",
   "languages": [
       {
         "lang": "en",
