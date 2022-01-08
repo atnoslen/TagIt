@@ -107,22 +107,21 @@ class TagIt extends FormApplication {
             let labelTxt = '';
             let labelStyle= "";
             let title = game.i18n.localize('TagIt.label'); 
-            let notes = app.document.getFlag('tagit', 'tags');
 
             labelTxt = ' ' + title
 
-            let openBtn = $(`<a class="open-tagit" title="${title}" ${labelStyle} ><i class="fas fa-clipboard${notes ? '-check':''}"></i>${labelTxt}</a>`);
+            let openBtn = $(`<a class="open-tagit" title="${title}" ${labelStyle} ><i class="fas fa-clipboard"></i>${labelTxt}</a>`);
             openBtn.click(ev => {
-                let noteApp = null;
+                let _app = null;
                 for (let key in app.document.apps) {
                     let obj = app.document.apps[key];
                     if (obj instanceof TagIt) {
-                        noteApp = obj;
+                        _app = obj;
                         break;
                     }
                 }
-                if (!noteApp) noteApp = new TagIt(app.document, { submitOnClose: true, closeOnSubmit: false, submitOnUnfocus: true });
-                noteApp.render(true);
+                if (!_app) _app = new TagIt(app.document, { submitOnClose: true, closeOnSubmit: false, submitOnUnfocus: true });
+                _app.render(true);
             });
             html.closest('.app').find('.open-tagit').remove();
             let titleElement = html.closest('.app').find('.window-title');
