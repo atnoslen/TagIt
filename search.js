@@ -70,7 +70,11 @@ export class TagItSearch extends FormApplication {
             _this._renderResults();
         });
 
-        $('button.search.refresh', html).on("click", function() {
+        $('button.search.refresh', html).on("click", async function() {
+
+            await TagItPackCache.refresh();
+            _this.tagcache = await TagItTagManager.getUsedTags();
+
             _this._renderResults();
         });
 
