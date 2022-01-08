@@ -78,6 +78,15 @@ export class TagItSearch extends FormApplication {
             _this._renderResults();
         });
 
+        // $(html)
+        // .parent()
+        // .css('overflow-y', 'hidden')
+        // .css('height', '100%');
+
+        // $('ol.tagit.search.directory-list', html)
+        // .parent()
+        // .css('overflow-y', 'auto');
+
         $('#taginput' + _this.appId, html).focus();
     }
     
@@ -181,6 +190,7 @@ export class TagItSearch extends FormApplication {
 
                 }
 
+                //$('.search.directory-list', _this.element).append(item);
                 $('.search.directory-list', _this.element).append(item);
             });
         }
