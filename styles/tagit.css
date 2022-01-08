@@ -1,0 +1,23 @@
+.tagit.collection {
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+}
+.tagit.item {
+    padding:2px 5px 2px 5px;
+    margin: 5px;
+    box-shadow: 2px 2px 3px grey;
+    flex-shrink: 3;
+    border: 1px solid #000;
+    border-radius: 5px
+}
+
+.tagit.collection .fas.fa-times-circle {
+    margin-left:5px;
+}
+
+.tagit.search.directory-list .directory-item h4 span {
+    font-size:0.8em;
+    margin-left: 1em;
+    float:right;
+}

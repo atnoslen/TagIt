@@ -1,0 +1,12 @@
+
+<form>
+    <div id="tags-collection" class="tagit collection">
+        
+    </div>
+    <input list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" autocomplete="off"/>
+    <datalist id="tagcache{{appId}}">
+    {{#each tagcache}}
+        <option value="{{this}}">
+    {{/each}}
+    </datalist>
+</form>

@@ -1,0 +1,32 @@
+<form>
+    <div class="directory flexcol">
+        <header class="directory-header flexrow">
+            <div class="header-search flexrow">
+                <i class="fas fa-search"></i>
+                <input type="text" list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
+                <button class="tagit search refresh" type="button"><i class="fas fa-redo center"></i></button>
+            </div>
+            <datalist id="tagcache{{appId}}">
+            </datalist>
+        </header>
+        <div class="tagit entity-filter">
+            <input type="checkbox" id="journalentries" name="journalentries" checked>
+            <label for="journalentries">Journals</label>
+
+            <input type="checkbox" id="actors" name="actors" checked>
+            <label for="actors">Actors</label>
+
+            <input type="checkbox" id="items" name="items" checked>
+            <label for="items">Items</label>
+
+            <input type="checkbox" id="tokens" name="tokens" checked>
+            <label for="tokens">Tokens</label>
+
+            <input type="checkbox" id="packs" name="packs" checked>
+            <label for="packs">Compendiums</label>
+        </div>
+        <div class="tagit collection"></div>
+        <ol class="tagit search directory-list" >
+        </ol>
+    </div>
+</form>

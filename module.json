@@ -1,48 +1,28 @@
 {
-  "name": "module",
-  "title": "New Module",
-  "description": "",
-  "version": "This is auto replaced",
-  "library": "false",
+	"name": "tagit",
+	"title": "TagIt!",
+	"description": "Adds tags to Journals and Compendiums",
+	"version": "0.1.0",
+	"author": "atnoslen",
   "manifestPlusVersion": "1.0.0",
-  "minimumCoreVersion": "9",
-  "compatibleCoreVersion": "9",
-  "authors": [
-    {
-      "name": "The League of Extraordinary FVTT Developers",
-      "url": "https://github.com/League-of-Foundry-Developers",
-      "discord": "discordID#0001"
-    }
-  ],
-  "dependencies": [
-
-  ],
-  "conflicts": [
-    
-  ],
-  "esmodules": [
-    "/scripts/module.js"
-  ],
-  "scripts": [
-    "/scripts/lib/lib.js"
+	"esmodules": [
+        "./tagit.js",
+        "./search.js",
+        "./packcache.js"
   ],
   "styles": [
-    "/styles/module.css"
+    "./styles/tagit.css"
   ],
+  "url": "https://github.com/atnoslen/TagIt",
+  "manifest": "https://github.com/TagIt/releases/latest/download/module.json",
+  "download": "Auto Replaced",
   "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "languages/en.json"
-    }
+      {
+        "lang": "en",
+        "name": "English",
+        "path": "lang/en.json"
+      }
   ],
-  "url": "This is auto replaced",
-  "manifest": "This is auto replaced",
-  "download": "This is auto replaced",
-  "media": [
-    {
-      "type": "icon",
-      "url": "https://avatars2.githubusercontent.com/u/71292812?s=400&u=ccdb4eeb7abf551ca8f314e5a9bfd0479a4d3d41&v=4"
-    }
-  ]
+  "minimumCoreVersion": "0.5.5",
+  "compatibleCoreVersion": "8.9"
 }
