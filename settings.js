@@ -24,12 +24,12 @@ export class Settings {
             default: []
         });
 
-        game.settings.registerMenu(mod, 'settingsMenu', {
-            name: "Cache",
-            label: "Modify",
-            icon: "fas fa-wrench",
-            type: SettingsForm,
-            restricted: true
-        });
+        // game.settings.registerMenu(mod, 'settingsMenu', {
+        //     name: "Cache",
+        //     label: "Modify",
+        //     icon: "fas fa-wrench",
+        //     type: SettingsForm,
+        //     restricted: true
+        // });
     }
 }
