@@ -16,19 +16,51 @@ A module to tag entities and then search for them.
 * Search for tags by pressing Ctrl-Shift-F
 * Open items from search
 
-### Demo
+# Demo
 
-* TBD
+## Search
 
-### To Do
+Search for items by tag, opening them directly from the search panel.
+
+![Demo of search](demo/tagit-search.gif)
+
+## Add Tag to Entity
+
+Add an existing or new tag.
+
+* Open entity
+* Click `Tags` on the title bar
+* Select an already existing tag or create your own
+* Close to save
+
+This demo searched for the tag `mephit`, which does not exist.  We open a journal and add that new tag.  We click refresh in the search to see the results.
+
+![Demo of search](demo/tagit-add-tag.gif)
+
+## Multiple Tags
+
+Include only entities with all tags.
+
+![Demo of entity filter](demo/tagit-and.gif)
+
+## Entity Filter
+
+Filter results by entity type.
+
+![Demo of entity filter](demo/tagit-entity-filter.gif)
+
+# TODO
 
 * Enable drag and drop
+* Add search capability for any flag
+* Add module section to manage tags (including renaming / removing)
 
-## Compatibility
+# Compatibility
 
 * PF2e
+* Should work with any JournalEntry, Actor, or Item
 
-## Changelog
+# Changelog
 
-#### V0.1.0
+## V0.1.0
 The beginning
