@@ -275,28 +275,28 @@ export class TagItSearch extends FormApplication {
         
         let result = [];
 
-        if (entities.includes('journalentries')) {
+        if (entities.includes('JournalEntry')) {
             result = result.concat(
                 game.journal.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
                 .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
 
-        if (entities.includes('actors')) {
+        if (entities.includes('Actor')) {
             result = result.concat(
                 game.actors.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
                 .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
         
-        if (entities.includes('items')) {
+        if (entities.includes('Item')) {
             result = result.concat(
                 game.items.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
                 .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
 
-        if (entities.includes('tokens')) {
+        if (entities.includes('Token')) {
             const tokenResults = canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))));
 
             result = result.concat(
@@ -317,11 +317,11 @@ export class TagItSearch extends FormApplication {
             )
         }
 
-        if (entities.includes('packs')) {
+        if (entities.includes('Pack')) {
 
             let packtags = [];
             for (const pack of TagItPackCache.index) {
-                packtags.push( pack.items.filter(a => tags.every(b => a.flags.tagit.tags.includes(b)))
+                packtags.push( pack.items.filter(a => entities.includes(pack.type) && tags.every(b => a.flags.tagit.tags.includes(b)))
                 .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: a.img, tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
             }
 
