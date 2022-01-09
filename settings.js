@@ -1,3 +1,4 @@
+import { RemoveForm } from './remove.js';
 import { SettingsForm } from './settingsForm.js';
 
 export const modName = 'TagIt!';
@@ -31,6 +32,15 @@ export class Settings {
             hint: "Allow modifying and removing tags throughout system.",
             icon: "fas fa-wrench",
             type: SettingsForm,
+            restricted: true
+        });
+
+        game.settings.registerMenu(mod, 'removeButton', {
+            name: "Remove all tags",
+            label: "Remove All",
+            hint: "[WARNING] This removes all tags from every entity!",
+            icon: "fas fa-trash",
+            type: RemoveForm,
             restricted: true
         });
     }

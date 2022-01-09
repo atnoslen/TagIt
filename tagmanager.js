@@ -35,4 +35,33 @@ export class TagItTagManager {
     
         return [...new Set([].concat(journaltags, actortags, itemtags, tokentags, packtags))].sort();
     }
+
+    static async removeAll() {
+        const promises = [];
+        const packRefresh = TagItPackCache.refresh();
+
+        for (const entity of game.journal.filter(a => a.data.flags?.tagit)) {
+            promises.push(entity.unsetFlag(mod, 'tags'));
+        }
+
+        for (const entity of game.actors.filter(a => a.data.flags?.tagit)) {
+            promises.push(entity.unsetFlag(mod, 'tags'));
+        }
+
+        for (const entity of game.items.filter(a => a.data.flags?.tagit)) {
+            promises.push(entity.unsetFlag(mod, 'tags'));
+        }
+
+        await packRefresh;
+
+        for (const pack of TagItPackCache.index) {
+            for (const index of pack.items) {
+                const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
+                
+                promises.push(entity.unsetFlag(mod, 'tags'));
+            }
+        }
+
+        await Promise.all(promises);
+    }
 }
