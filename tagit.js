@@ -9,6 +9,9 @@ class TagIt extends FormApplication {
     tagcache = null;
     tags = [];
 
+    // Such as from a non-linked token's actor
+    readOnlyTags = [];
+
     constructor(object, options) {
         super(object, options);
 
@@ -36,7 +39,23 @@ class TagIt extends FormApplication {
 
         await TagItPackCache.refresh();
 
-        this.tags = this.entity.getFlag(mod, 'tags');
+        console.log(this.entity);
+
+        switch(this.entity.documentName) {
+            case 'JournalEntry':
+            case 'Item':
+                this.tags = this.entity.getFlag(mod, 'tags');
+                break;
+            case 'Actor':
+                if (this.entity.isToken) {
+                    this.tags = this.entity.token.getFlag(mod, 'tags');
+                    this.readOnlyTags = this.entity.getFlag(mod, 'tags');
+                } else {
+                    this.tags = this.entity.getFlag(mod, 'tags');
+                }
+                break;
+        }
+
         this.tagcache = await TagItTagManager.getUsedTags();
         
         data.tags = this.tags
@@ -52,6 +71,16 @@ class TagIt extends FormApplication {
     activateListeners(html) {
         const _this = this;
         super.activateListeners(html);
+
+        if (_this.readOnlyTags) {
+            // Render read only version for tags.
+            _this.readOnlyTags.forEach(tag => {
+                TagItInputManager.addtag(tag, _this, {
+                    updateAutocomplete: false,
+                    readonly: true
+                });
+            });
+        }
 
         if (_this.tags) {
             _this.tags.forEach(tag => {
@@ -88,7 +117,19 @@ class TagIt extends FormApplication {
                     return $(this).text();
                 }).get().sort();
 
-            await this.entity.setFlag(mod, 'tags', items);
+            switch(this.entity.documentName) {
+                case 'JournalEntry':
+                case 'Item':
+                    await this.entity.setFlag(mod, 'tags', items);
+                    break;
+                case 'Actor':
+                    if (this.entity.isToken) {
+                        await this.entity.token.setFlag(mod, 'tags', items);
+                    } else {
+                        await this.entity.setFlag(mod, 'tags', items);
+                    }
+                    break;
+                }
 
             var cache = game.settings.get(mod, 'tags');
 
