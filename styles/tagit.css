@@ -39,6 +39,55 @@ div.directory.tagit.search-app {
     float:right;
 }
 
+ol.tagit.search.directory-list li {
+    display:flex;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+    min-height: 48px;
+}
+
+ol.tagit.search.directory-list li div.entry-name {
+    display:flex;
+    flex-direction: column;
+    place-items: flex-start;
+    line-height: normal
+}
+
+ol.tagit.search.directory-list li div.entry-name h4 {
+    margin-bottom:0.2em;
+}
+
+ol.tagit.search.directory-list li div.entity-info {
+    font-size:0.8em;
+    line-height:normal;
+    flex:none;
+    text-align:right;
+}
+
+ol.tagit.search.directory-list li div.tag.collection {
+    font-size:0.7em;
+}
+
+span.tagit.tag {
+    border-radius:6px;
+    padding: 1px 4px;
+    box-shadow: 2px 2px 3px grey;
+    border: darkred 1px solid;
+    background-color: darkred;
+    color: white;
+}
+
+span.tagit.tag:not(:first-child) {
+    margin-left: 0.5em;
+}
+
+span.tagit.tag.entity-type {
+    border:yellow 1px solid;
+    background:yellow;
+    color: black;
+}
+
 .directory-header .tagit.collection {
     line-height: normal;
 }

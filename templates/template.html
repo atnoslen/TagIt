@@ -1,9 +1,10 @@
 
 <form>
-    <div id="tags-collection" class="tagit collection">
-        
+    <div style="margin-bottom:1em;">
+        <input list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" autocomplete="off"/>
     </div>
-    <input list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" autocomplete="off"/>
+    <div id="tags-collection" class="tagit collection">
+    </div>
     <datalist id="tagcache{{appId}}">
     {{#each tagcache}}
         <option value="{{this}}">

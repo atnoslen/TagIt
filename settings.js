@@ -19,13 +19,6 @@ export class Settings {
      * @memberof Settings
      */
     static registerSettings() {
-        game.settings.register(mod, "tags", {
-            scope: "world",
-            config: false,
-            type: Array,
-            default: []
-        });
-
         game.settings.registerMenu(mod, 'settingsMenu', {
             name: "Update Tags",
             label: "Modify",

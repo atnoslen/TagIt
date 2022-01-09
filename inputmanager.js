@@ -10,7 +10,8 @@ export class TagItInputManager {
      static addtag(tag, form, options) {
         const defaults = {
             updateAutocomplete: true,
-            onUpdate: null
+            onUpdate: null,
+            readonly: false
         };
         options = $.extend({}, defaults, options || {});
 
@@ -27,23 +28,25 @@ export class TagItInputManager {
     
             // Check if tag already in list.
             if (items.length == 0) {
-                
-                const ele = $('<div>')
-                .addClass(`${mod}`)
-                .addClass('item')
-                .text(tag)
-                .append(
-                    $('<i>')
-                    .addClass('fas')
-                    .addClass('fa-times-circle')
-                    .on('click', function(e) {
-                        $(this).parent().remove();
-                        TagItInputManager.calculateAutocompleteList(form);
-                        if (options.onUpdate) {
-                            options.onUpdate();
-                        }
-                    })
-                );
+                const ele = $('<span>')
+                .addClass('tagit')
+                .addClass('tag')
+                .text(tag);
+
+                if (options.readonly === false) {
+                    $(ele).append(
+                        $('<i>')
+                        .addClass('fas')
+                        .addClass('fa-times-circle')
+                        .on('click', function(e) {
+                            $(this).parent().remove();
+                            TagItInputManager.calculateAutocompleteList(form);
+                            if (options.onUpdate) {
+                                options.onUpdate();
+                            }
+                        })
+                    );
+                }
                 
     
                 $('.tagit.collection', form.element).append(ele);
@@ -66,7 +69,9 @@ export class TagItInputManager {
      * 
      */
     static calculateAutocompleteList(form) {
-        const items = $('.tagit.item', form.element).map(function() {
+        const collection = $('div.tagit.collection', form.element);
+
+        const items = $('span.tag', collection).map(function() {
             return $(this).text();
         }).get();
     

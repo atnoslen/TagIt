@@ -88,7 +88,8 @@ export class TagItSearch extends FormApplication {
     _renderResults() {
         const _this = this;
 
-        const items = $('.tagit.item', _this.element).map(function() {
+        const collection = $('div.tagit.collection', _this.element);
+        const items = $('span.tag', collection).map(function() {
             return $(this).text();
         }).get();
 
@@ -120,10 +121,13 @@ export class TagItSearch extends FormApplication {
                 }
 
                 $(item).append(
-                    $('<h4>')
+                    $('<div>')
                     .addClass('entry-name')
                     .append(
-                        $('<a>').text(a.name)
+                        $('<h4>')
+                        .append(
+                            $('<a>').text(a.name)
+                        )
                     )
                 );
 
@@ -132,39 +136,88 @@ export class TagItSearch extends FormApplication {
                         $(item).addClass('journalentry');
 
                         $('a', item).on("click", function () {
-                            game.journal.get($(this).parent().parent().attr("data-document-id")).sheet.render(true);
+                            game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Journal Entry)'));
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text('JournalEntry')
+                            )
+                        );
+
                         break;
                     case "Actor":
                         $(item).addClass('actor');
 
                         $('a', item).on("click", function () {
-                            game.actors.get($(this).parent().parent().attr("data-document-id")).sheet.render(true);
+                            game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Actor)'));
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text('Actor')
+                            )
+                        );
 
                         break;
                     case "Item":
                         $(item).addClass('item');
 
                         $('a', item).on("click", function () {
-                            game.items.get($(this).parent().parent().attr("data-document-id")).sheet.render(true);
+                            game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Item)'));
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text('Item')
+                            )
+                        );
 
                         break;
                     case "Token":
                         $(item).addClass('token');
 
                         $('a', item).on("click", function () {
-                            canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().attr("data-document-id")).actor.sheet.render(true);
+                            canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Token)'));
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text('Token')
+                            )
+                        );
 
                         break;
                     case "Pack":
@@ -172,13 +225,45 @@ export class TagItSearch extends FormApplication {
                         .attr('data-pack', a.pack);
 
                         $('a', item).on("click", function () {
-                            game.packs.get($(this).parent().parent().attr("data-pack")).getDocument($(this).parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
+                            game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
                         });
 
-                        $('h4', item).append($('<span>').text('(' + a.pack + ')'));
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text(a.type)
+                            )
+                        )
+
+                        $(item).append(
+                            $('<div>')
+                            .addClass('entity-info')
+                            .append(
+                                $('<p>')
+                                .text(`(${a.pack})`)
+                            )
+                        );
 
                         break;
+                }
 
+                const collectionElement = $('div.tag.collection', item);
+
+                for (const tag of a.tags) {
+                    $(collectionElement)
+                    .append(
+                        $('<span>')
+                        .addClass('tagit')
+                        .addClass('tag')
+                        .text(tag)
+                    );
                 }
 
                 $('.search.directory-list', _this.element).append(item);
@@ -190,45 +275,52 @@ export class TagItSearch extends FormApplication {
         
         let result = [];
 
-        if (entities.includes('journalentries')) {
+        if (entities.includes('JournalEntry')) {
             result = result.concat(
                 game.journal.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img}})
+                .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
 
-        if (entities.includes('actors')) {
+        if (entities.includes('Actor')) {
             result = result.concat(
                 game.actors.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img}})
+                .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
         
-        if (entities.includes('items')) {
+        if (entities.includes('Item')) {
             result = result.concat(
                 game.items.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img}})
+                .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
 
-        if (entities.includes('tokens')) {
-            result = result.concat(
-                canvas.tokens.objects?.children?.filter(a => tags.every(b => a.data.actorData?.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.icon.src}})
-            );
+        if (entities.includes('Token')) {
+            const tokenResults = canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))));
 
             result = result.concat(
-                canvas.tokens.objects?.children?.filter(a => tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.icon.src}})
-            );
+                canvas.tokens.getDocuments().filter(a => tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || tags.some(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
+                .map(a => {
+                    return {
+                        entity: "Token",
+                        id: a.id,
+                        name: a.name,
+                        img: a.data.img,
+                        tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                              .filter(item => item !== undefined)
+                    };
+                })
+                .filter(a => tags.every(b => a.tags.includes(b)))
+            )
         }
 
-        if (entities.includes('packs')) {
+        if (entities.includes('Pack')) {
 
             let packtags = [];
             for (const pack of TagItPackCache.index) {
-                packtags.push( pack.items.filter(a => tags.every(b => a.flags.tagit.tags.includes(b)))
-                .map(a => { return { entity: "Pack", id: a._id, name: a.name, img: a.img, pack: pack.pack + '.' + pack.name }}));
+                packtags.push( pack.items.filter(a => entities.includes(pack.type) && tags.every(b => a.flags.tagit.tags.includes(b)))
+                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: a.img, tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
             }
 
             packtags = packtags.flat();
@@ -256,7 +348,7 @@ Hooks.once('ready', async () => {
     window.addEventListener('keypress', (e) => {
         if (e.shiftKey && e.ctrlKey && e.code === 'KeyF') {
             if (form === null) {
-                form = new TagItSearch(); // data, options
+                form = new TagItSearch();
             }
 
             if (!(form.rendered)) {

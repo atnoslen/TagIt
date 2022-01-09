@@ -23,9 +23,9 @@ export class TagItTagManager {
         })
         .flat();
     
-        const tokentags = canvas.tokens.objects?.children?.filter(a => a.data.actorData?.flags?.tagit?.tags?.length > 0)
+        const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(e => {
-            return e.data.actorData.flags.tagit.tags;
+            return e.data.flags.tagit.tags;
         })
         .flat();
     
@@ -49,6 +49,10 @@ export class TagItTagManager {
         }
 
         for (const entity of game.items.filter(a => a.data.flags?.tagit)) {
+            promises.push(entity.unsetFlag(mod, 'tags'));
+        }
+
+        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit)) {
             promises.push(entity.unsetFlag(mod, 'tags'));
         }
 
