@@ -9,6 +9,9 @@ class TagIt extends FormApplication {
     tagcache = null;
     tags = [];
 
+    // Such as from a non-linked token's actor
+    readOnlyTags = [];
+
     constructor(object, options) {
         super(object, options);
 
@@ -37,6 +40,12 @@ class TagIt extends FormApplication {
         await TagItPackCache.refresh();
 
         this.tags = this.entity.getFlag(mod, 'tags');
+
+        if (this.entity.documentName === 'Actor' && this.entity.isToken) {
+            this.tags = this.entity.token.getFlag(mod, 'tags');
+            this.readOnlyTags = this.entity.getFlag(mod, 'tags');
+        }
+
         this.tagcache = await TagItTagManager.getUsedTags();
         
         data.tags = this.tags
@@ -52,6 +61,16 @@ class TagIt extends FormApplication {
     activateListeners(html) {
         const _this = this;
         super.activateListeners(html);
+
+        if (_this.readOnlyTags) {
+            // Render read only version for tags.
+            _this.readOnlyTags.forEach(tag => {
+                TagItInputManager.addtag(tag, _this, {
+                    updateAutocomplete: false,
+                    readonly: true
+                });
+            });
+        }
 
         if (_this.tags) {
             _this.tags.forEach(tag => {
@@ -83,12 +102,24 @@ class TagIt extends FormApplication {
     
     async _updateObject(event, formData) {
         if (game.user.isGM) {
-            var items = $('.tagit.item', this.element).map(
-                function() {
+            var items = $('.tagit.item', this.element)
+            .map(function() {
+                if ($('i.fa-times-circle', this).length > 0) {
                     return $(this).text();
-                }).get().sort();
+                }
+            }).get().sort();
 
-            await this.entity.setFlag(mod, 'tags', items);
+            let entity = this.entity;
+
+            if (this.entity.documentName === "Actor" && this.entity.isToken) {
+                entity = this.entity.token;
+            }
+
+            if (items.length > 0) {
+                await entity.setFlag(mod, 'tags', items);
+            } else {
+                await entity.unsetFlag(mod, 'tags');
+            }
 
             var cache = game.settings.get(mod, 'tags');
 
