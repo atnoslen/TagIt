@@ -120,10 +120,13 @@ export class TagItSearch extends FormApplication {
                 }
 
                 $(item).append(
-                    $('<h4>')
+                    $('<div>')
                     .addClass('entry-name')
                     .append(
-                        $('<a>').text(a.name)
+                        $('<h4>')
+                        .append(
+                            $('<a>').text(a.name)
+                        )
                     )
                 );
 
@@ -132,39 +135,67 @@ export class TagItSearch extends FormApplication {
                         $(item).addClass('journalentry');
 
                         $('a', item).on("click", function () {
-                            game.journal.get($(this).parent().parent().attr("data-document-id")).sheet.render(true);
+                            game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Journal Entry)'));
+                        $(item).append(
+                            $('<div>')
+                            .addClass('entity-info')
+                            .append(
+                                $('<p>')
+                                .text('JournalEntry')
+                            )
+                        );
                         break;
                     case "Actor":
                         $(item).addClass('actor');
 
                         $('a', item).on("click", function () {
-                            game.actors.get($(this).parent().parent().attr("data-document-id")).sheet.render(true);
+                            game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Actor)'));
+                        $(item).append(
+                            $('<div>')
+                            .addClass('entity-info')
+                            .append(
+                                $('<p>')
+                                .text('Actor')
+                            )
+                        );
 
                         break;
                     case "Item":
                         $(item).addClass('item');
 
                         $('a', item).on("click", function () {
-                            game.items.get($(this).parent().parent().attr("data-document-id")).sheet.render(true);
+                            game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Item)'));
+                        $(item).append(
+                            $('<div>')
+                            .addClass('entity-info')
+                            .append(
+                                $('<p>')
+                                .text('Item')
+                            )
+                        );
 
                         break;
                     case "Token":
                         $(item).addClass('token');
 
                         $('a', item).on("click", function () {
-                            canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().attr("data-document-id")).actor.sheet.render(true);
+                            canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
                         });
 
-                        $('h4', item).append($('<span>').text('(Token)'));
+                        $(item).append(
+                            $('<div>')
+                            .addClass('entity-info')
+                            .append(
+                                $('<p>')
+                                .text('Token')
+                            )
+                        );
 
                         break;
                     case "Pack":
@@ -172,13 +203,23 @@ export class TagItSearch extends FormApplication {
                         .attr('data-pack', a.pack);
 
                         $('a', item).on("click", function () {
-                            game.packs.get($(this).parent().parent().attr("data-pack")).getDocument($(this).parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
+                            game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
                         });
 
-                        $('h4', item).append($('<span>').text('(' + a.pack + ')'));
+                        $(item).append(
+                            $('<div>')
+                            .addClass('entity-info')
+                            .append(
+                                $('<p>')
+                                .text(a.type)
+                            )
+                            .append(
+                                $('<p>')
+                                .text(`(${a.pack})`)
+                            )
+                        );
 
                         break;
-
                 }
 
                 $('.search.directory-list', _this.element).append(item);
@@ -224,7 +265,7 @@ export class TagItSearch extends FormApplication {
             let packtags = [];
             for (const pack of TagItPackCache.index) {
                 packtags.push( pack.items.filter(a => tags.every(b => a.flags.tagit.tags.includes(b)))
-                .map(a => { return { entity: "Pack", id: a._id, name: a.name, img: a.img, pack: pack.pack + '.' + pack.name }}));
+                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: a.img, pack: pack.pack + '.' + pack.name }}));
             }
 
             packtags = packtags.flat();

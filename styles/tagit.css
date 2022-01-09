@@ -39,6 +39,25 @@ div.directory.tagit.search-app {
     float:right;
 }
 
+ol.tagit.search.directory-list li {
+    display:flex;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+}
+
+ol.tagit.search.directory-list li div.entry-name {
+    display:flex;
+    align-items:center;
+}
+
+ol.tagit.search.directory-list li div.entity-info {
+    font-size:0.8em;
+    line-height:normal;
+    flex:none;
+    text-align:right;
+}
+
 .directory-header .tagit.collection {
     line-height: normal;
 }

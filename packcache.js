@@ -7,7 +7,7 @@ export class TagItPackCache {
         const packIndexes = [];
     
         for (const pack of game.packs.filter(a => a.metadata.entity === "Actor" || a.metadata.entity === "JournalEntry" || a.metadata.entity === "Item")) {
-            packIndexes.push({pack: pack.metadata.package, name: pack.metadata.name, index: pack.getIndex({fields: ["flags","img"]})});
+            packIndexes.push({pack: pack.metadata.package, name: pack.metadata.name, type: pack.documentName, index: pack.getIndex({fields: ["flags","img"]})});
         }
     
         return packIndexes;
@@ -24,7 +24,7 @@ export class TagItPackCache {
             var packsWithTags = index.filter(b => b.flags?.tagit?.tags?.length > 0);
         
             if (packsWithTags.length > 0) {
-                packs.push({pack: pack.pack, name: pack.name, items: packsWithTags});
+                packs.push({pack: pack.pack, name: pack.name, type: pack.type, items: packsWithTags});
             }
         }
     
