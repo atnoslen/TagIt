@@ -214,7 +214,7 @@ export class TagItSearch extends FormApplication {
         if (entities.includes('tokens')) {
 
             result = result.concat(
-                canvas.tokens.getDocuments().filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
+                canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))))
                 .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.data.img}})
             )
         }
