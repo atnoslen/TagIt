@@ -53,6 +53,10 @@ export class TagItTagManager {
             promises.push(entity.unsetFlag(mod, 'tags'));
         }
 
+        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit)) {
+            promises.push(entity.unsetFlag(mod, 'tags'));
+        }
+
         await packRefresh;
 
         for (const pack of TagItPackCache.index) {
