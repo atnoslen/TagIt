@@ -1,3 +1,5 @@
+import { Settings, mod } from "./settings.js";
+
 export class TagItPackCache {
     static index = null;
 

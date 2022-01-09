@@ -1,4 +1,4 @@
-import { Settings } from "./settings.js";
+import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInputManager } from "./inputmanager.js";
@@ -13,7 +13,7 @@ export class TagItSearch extends FormApplication {
 
     static get defaultOptions() {
         const options = super.defaultOptions;
-        options.template = "modules/tagit/templates/search.html";
+        options.template = `modules/${mod}/templates/search.html`;
         options.width = '450';
         options.height = '500';
         options.title = game.i18n.localize('TagIt.Search.title');
@@ -58,7 +58,7 @@ export class TagItSearch extends FormApplication {
             if (event.keyCode === 13) {
                 event.preventDefault();
 
-                TagItInputManager.addtag($('#taginput' + _this.appId, html).val(), _this, {
+                TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this, {
                     onUpdate: () => {
                         _this._renderResults();
                     }
@@ -78,16 +78,7 @@ export class TagItSearch extends FormApplication {
             _this._renderResults();
         });
 
-        // $(html)
-        // .parent()
-        // .css('overflow-y', 'hidden')
-        // .css('height', '100%');
-
-        // $('ol.tagit.search.directory-list', html)
-        // .parent()
-        // .css('overflow-y', 'auto');
-
-        $('#taginput' + _this.appId, html).focus();
+        $(`#taginput${_this.appId}`, html).focus();
     }
     
     async _updateObject(event, formData) {
@@ -190,7 +181,6 @@ export class TagItSearch extends FormApplication {
 
                 }
 
-                //$('.search.directory-list', _this.element).append(item);
                 $('.search.directory-list', _this.element).append(item);
             });
         }

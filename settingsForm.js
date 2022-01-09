@@ -1,4 +1,4 @@
-import { Settings } from './settings.js';
+import { Settings, mod } from './settings.js';
 //import { getUsedTags } from './tagit.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
@@ -13,9 +13,9 @@ export class SettingsForm extends FormApplication {
      */
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
-            id: "tagit-settings-form",
+            id: `${mod}-settings-form`,
             title: game.i18n.localize("TagIt.SettingTitle"),
-            template: "modules/tagit/templates/settings.html",
+            template: `modules/${mod}/templates/settings.html`,
             classes: ["sheet"],
             width: 500,
             height: 500,
@@ -52,14 +52,12 @@ export class SettingsForm extends FormApplication {
      */
     async _updateObject(event, data) {
         if (game.user.isGM) {
-            //await this.entity.setFlag('tagit', 'tags', formData["flags.tagit.tags"]);
-
             var items = $('.tagit.item', this.element).map(
                 function() {
                     return $(this).text();
                 }).get().sort();
 
-            await game.settings.set('tagit', 'tags', items);
+            await game.settings.set(mod, 'tags', items);
 
             //this.render();
         } else {

@@ -1,3 +1,5 @@
+import { Settings, mod } from "./settings.js";
+
 export class TagItInputManager {
     /**
      * Adds a tag to the current FormApplication
@@ -13,7 +15,7 @@ export class TagItInputManager {
         options = $.extend({}, defaults, options || {});
 
         if (!tag) {
-            tag = $('#taginput' + form.appId, form.element).val();
+            tag = $(`#taginput${form.appId}`, form.element).val();
         }
     
         tag = $.trim(tag);
@@ -27,7 +29,7 @@ export class TagItInputManager {
             if (items.length == 0) {
                 
                 const ele = $('<div>')
-                .addClass('tagit')
+                .addClass(`${mod}`)
                 .addClass('item')
                 .text(tag)
                 .append(
@@ -46,7 +48,7 @@ export class TagItInputManager {
     
                 $('.tagit.collection', form.element).append(ele);
     
-                $('#taginput' + form.appId, form.element).val('');
+                $(`#taginput${form.appId}`, form.element).val('');
 
                 if (options.updateAutocomplete) {
                     TagItInputManager.calculateAutocompleteList(form);
@@ -72,7 +74,7 @@ export class TagItInputManager {
             return items.indexOf(item) < 0;
         }).sort();
     
-        const dataList = $('datalist#tagcache' + form.appId, form.element);
+        const dataList = $(`datalist#tagcache${form.appId}`, form.element);
         dataList.empty();
     
         $.each(autoList, function (index, value) {

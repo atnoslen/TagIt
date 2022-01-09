@@ -1,3 +1,4 @@
+import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 
 export class TagItTagManager {
@@ -6,25 +7,25 @@ export class TagItTagManager {
     
         const journaltags = game.journal.filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(e => {
-            return e.data.flags["tagit"]["tags"];
+            return e.data.flags.tagit.tags;
         })
         .flat();
     
         const actortags = game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(e => {
-            return e.data.flags["tagit"]["tags"];
+            return e.data.flags.tagit.tags;
         })
         .flat();
     
         const itemtags = game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(e => {
-            return e.data.flags["tagit"]["tags"];
+            return e.data.flags.tagit.tags;
         })
         .flat();
     
         const tokentags = canvas.tokens.objects?.children?.filter(a => a.data.actorData?.flags?.tagit?.tags?.length > 0)
         .map(e => {
-            return e.data.actorData.flags["tagit"]["tags"];
+            return e.data.actorData.flags.tagit.tags;
         })
         .flat();
     
