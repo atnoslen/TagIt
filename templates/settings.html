@@ -1,10 +1,20 @@
-<form autocomplete="off" onsubmit="event.preventDefault()">
-    <div id="tags-collection" class="tagit collection">
-        {{#each tags}}
-        <div class="tagit item">{{this}}<i class="fas fa-times-circle" onclick="$(this).parent().remove();"></i></div>
-        {{/each}}
+<form autocomplete="off" onsubmit="event.preventDefault()" style="height:100%; overflow:hidden;">
+    <div class="directory flexcol tagit search-app">
+        <header class="directory-header flexrow">
+            <div class="header-search flexrow" style="flex-basis: 100%;">
+                <i class="fas fa-search"></i>
+                <input type="text" list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
+            </div>
+            <datalist id="tagcache{{appId}}">
+                {{#each tags}}
+                <option value="{{this}}"></option>
+                {{/each}}
+            </datalist>
+        </header>
+        <ol class="tagit search directory-list">
+            {{#each tags}}
+            <li class="directory-item flexrow" style="display:flex; line-height: 32px;"><h4 class="entry-name"><a>{{this}}</a></h4></li>
+            {{/each}}
+        </ol>
     </div>
-    <button type="submit" name="submit">
-        <i class="fas fa-save"></i> Save
-    </button>
 </form>

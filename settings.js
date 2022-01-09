@@ -25,12 +25,13 @@ export class Settings {
             default: []
         });
 
-        // game.settings.registerMenu(mod, 'settingsMenu', {
-        //     name: "Cache",
-        //     label: "Modify",
-        //     icon: "fas fa-wrench",
-        //     type: SettingsForm,
-        //     restricted: true
-        // });
+        game.settings.registerMenu(mod, 'settingsMenu', {
+            name: "Update Tags",
+            label: "Modify",
+            hint: "Allow modifying and removing tags throughout system.",
+            icon: "fas fa-wrench",
+            type: SettingsForm,
+            restricted: true
+        });
     }
 }
