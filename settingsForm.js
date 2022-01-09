@@ -48,40 +48,53 @@ export class SettingsForm extends FormApplication {
         return data;
     }
 
+    /**
+     * Load the tag into the form.
+     *
+     * @readonly
+     * @static
+     * @memberof SettingsForm
+     */
+    async loadTags() {
+        const _this = this;
+        await TagItPackCache.refresh();
+        _this.tags = await TagItTagManager.getUsedTags();
+
+        const container = $('ol.tagit.search.directory-list', this.element).empty();
+
+        for (const tag of _this.tags) {
+            container.append(
+                $('<li>')
+                .addClass('directory-item')
+                .addClass('flexrow')
+                .css('display', 'flex')
+                .css('line-height', '32px')
+                .append(
+                    $('<h4>')
+                    .addClass('entry-name')
+                    .append(
+                        $('<a>')
+                        .text(tag)
+                        .on('click', function() {
+                            const data = {
+                                tag: $(this).text(),
+                                onsubmit: function () {
+                                    _this.loadTags();
+                                }
+                            }
+                            const editApp = new EditTag(data).render(true);
+                        })
+                    )
+                )
+            );
+        }
+    }
+
     activateListeners(html) {
         const _this = this;
         super.activateListeners(html);
 
-        // if (_this.tags) {
-        //     _this.tags.forEach(tag => {
-        //         TagItInputManager.addtag(tag, _this, {
-        //             updateAutocomplete: false
-        //         });
-        //     });
-        // }
-
-        // TagItInputManager.calculateAutocompleteList(_this);
-    
-        // $(`#taginput${_this.appId}`, html).on('input', function (event) {
-        //     if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
-        //         // Selected a tag from dropdown
-        //         TagItInputManager.addtag(this.value, _this);
-        //     }
-        // });
-    
-        // $(`#taginput${_this.appId}`, html).on('keypress', function(event) {
-        //     if (event.keyCode === 13) {
-        //         event.preventDefault();
-    
-        //         TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this);
-        //     }
-        // });
-
-        $('ol.tagit.search.directory-list li h4 a')
-        .on('click', function() {
-            const editApp = new EditTag($(this).text());
-            editApp.render(true);
-        });
+        _this.loadTags();
     
         $(`#taginput${_this.appId}`, html).focus();
     }
@@ -94,17 +107,5 @@ export class SettingsForm extends FormApplication {
      * @memberof SettingsForm
      */
     async _updateObject(event, data) {
-        if (game.user.isGM) {
-            var items = $('.tagit.item', this.element).map(
-                function() {
-                    return $(this).text();
-                }).get().sort();
-
-            await game.settings.set(mod, 'tags', items);
-
-            //this.render();
-        } else {
-            ui.notifications.error("You have to be GM to update journal tags");
-        }
     }
 }
