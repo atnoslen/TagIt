@@ -2,6 +2,12 @@
     "TagIt": {
         "Search": {
             "title": "Search for tag"
+        },
+        "EditTag": {
+            "title": "Edit Tag",
+            "Rename": {
+                "label": "Rename"
+            }
         }
     },
     "TagIt.label":"Tags",
