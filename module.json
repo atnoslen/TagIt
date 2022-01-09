@@ -6,9 +6,9 @@
 	"author": "atnoslen",
   "manifestPlusVersion": "1.0.0",
 	"esmodules": [
-        "./tagit.js",
-        "./search.js",
-        "./packcache.js"
+        "./scripts/tagit.js",
+        "./scripts/search.js",
+        "./scripts/packcache.js"
   ],
   "styles": [
     "./styles/tagit.css"
