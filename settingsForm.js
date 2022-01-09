@@ -2,6 +2,7 @@ import { Settings, mod } from './settings.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInputManager } from "./inputmanager.js"
+import { EditTag } from "./edittag.js"
 
 export class SettingsForm extends FormApplication {
     tags = [];
@@ -75,6 +76,12 @@ export class SettingsForm extends FormApplication {
         //         TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this);
         //     }
         // });
+
+        $('ol.tagit.search.directory-list li h4 a')
+        .on('click', function() {
+            const editApp = new EditTag($(this).text());
+            editApp.render(true);
+        });
     
         $(`#taginput${_this.appId}`, html).focus();
     }
