@@ -121,12 +121,6 @@ class TagIt extends FormApplication {
                 await entity.unsetFlag(mod, 'tags');
             }
 
-            var cache = game.settings.get(mod, 'tags');
-
-            cache = [...new Set([...items,...cache])].sort();
-
-            await game.settings.set(mod, 'tags', cache);
-
             this.render();
         } else {
             ui.notifications.error("You have to be GM to update tags");
