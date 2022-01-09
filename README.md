@@ -33,7 +33,7 @@ Add an existing or new tag.
 * Select an already existing tag or create your own
 * Close to save
 
-This demo searched for the tag `mephit`, which does not exist.  We open a journal and add that new tag.  We click refresh in the search to see the results.
+This demo searched for the tag `small`, which does not exist.  We open a journal and add that new tag.  We click refresh in the search to see the results.
 
 ![Demo of search](demo/tagit-add-tag.gif)
 
