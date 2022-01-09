@@ -88,7 +88,8 @@ export class TagItSearch extends FormApplication {
     _renderResults() {
         const _this = this;
 
-        const items = $('.tagit.item', _this.element).map(function() {
+        const collection = $('div.tagit.collection', _this.element);
+        const items = $('span.tag', collection).map(function() {
             return $(this).text();
         }).get();
 
@@ -138,14 +139,20 @@ export class TagItSearch extends FormApplication {
                             game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $(item).append(
+                        $('div.entry-name', item)
+                        .append(
                             $('<div>')
-                            .addClass('entity-info')
+                            .addClass('tag')
+                            .addClass('collection')
                             .append(
-                                $('<p>')
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
                                 .text('JournalEntry')
                             )
                         );
+
                         break;
                     case "Actor":
                         $(item).addClass('actor');
@@ -154,11 +161,16 @@ export class TagItSearch extends FormApplication {
                             game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $(item).append(
+                        $('div.entry-name', item)
+                        .append(
                             $('<div>')
-                            .addClass('entity-info')
+                            .addClass('tag')
+                            .addClass('collection')
                             .append(
-                                $('<p>')
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
                                 .text('Actor')
                             )
                         );
@@ -171,11 +183,16 @@ export class TagItSearch extends FormApplication {
                             game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
                         });
 
-                        $(item).append(
+                        $('div.entry-name', item)
+                        .append(
                             $('<div>')
-                            .addClass('entity-info')
+                            .addClass('tag')
+                            .addClass('collection')
                             .append(
-                                $('<p>')
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
                                 .text('Item')
                             )
                         );
@@ -188,11 +205,16 @@ export class TagItSearch extends FormApplication {
                             canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
                         });
 
-                        $(item).append(
+                        $('div.entry-name', item)
+                        .append(
                             $('<div>')
-                            .addClass('entity-info')
+                            .addClass('tag')
+                            .addClass('collection')
                             .append(
-                                $('<p>')
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
                                 .text('Token')
                             )
                         );
@@ -206,13 +228,23 @@ export class TagItSearch extends FormApplication {
                             game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
                         });
 
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text(a.type)
+                            )
+                        )
+
                         $(item).append(
                             $('<div>')
                             .addClass('entity-info')
-                            .append(
-                                $('<p>')
-                                .text(a.type)
-                            )
                             .append(
                                 $('<p>')
                                 .text(`(${a.pack})`)
@@ -220,6 +252,18 @@ export class TagItSearch extends FormApplication {
                         );
 
                         break;
+                }
+
+                const collectionElement = $('div.tag.collection', item);
+
+                for (const tag of a.tags) {
+                    $(collectionElement)
+                    .append(
+                        $('<span>')
+                        .addClass('tagit')
+                        .addClass('tag')
+                        .text(tag)
+                    );
                 }
 
                 $('.search.directory-list', _this.element).append(item);
@@ -234,29 +278,42 @@ export class TagItSearch extends FormApplication {
         if (entities.includes('journalentries')) {
             result = result.concat(
                 game.journal.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img}})
+                .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
 
         if (entities.includes('actors')) {
             result = result.concat(
                 game.actors.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img}})
+                .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
         
         if (entities.includes('items')) {
             result = result.concat(
                 game.items.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img}})
+                .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
             );
         }
 
         if (entities.includes('tokens')) {
+            const tokenResults = canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))));
 
             result = result.concat(
-                canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))))
-                .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.data.img}})
+                // canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))))
+                // .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
+                canvas.tokens.getDocuments().filter(a => tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || tags.some(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
+                .map(a => {
+                    return {
+                        entity: "Token",
+                        id: a.id,
+                        name: a.name,
+                        img: a.data.img,
+                        tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                              .filter(item => item !== undefined)
+                    };
+                })
+                .filter(a => tags.every(b => a.tags.includes(b)))
             )
         }
 
@@ -265,7 +322,7 @@ export class TagItSearch extends FormApplication {
             let packtags = [];
             for (const pack of TagItPackCache.index) {
                 packtags.push( pack.items.filter(a => tags.every(b => a.flags.tagit.tags.includes(b)))
-                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: a.img, pack: pack.pack + '.' + pack.name }}));
+                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: a.img, tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
             }
 
             packtags = packtags.flat();

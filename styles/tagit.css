@@ -44,11 +44,18 @@ ol.tagit.search.directory-list li {
     flex-direction:row;
     justify-content:space-between;
     align-items:center;
+    min-height: 48px;
 }
 
 ol.tagit.search.directory-list li div.entry-name {
     display:flex;
-    align-items:center;
+    flex-direction: column;
+    place-items: flex-start;
+    line-height: normal
+}
+
+ol.tagit.search.directory-list li div.entry-name h4 {
+    margin-bottom:0.2em;
 }
 
 ol.tagit.search.directory-list li div.entity-info {
@@ -56,6 +63,45 @@ ol.tagit.search.directory-list li div.entity-info {
     line-height:normal;
     flex:none;
     text-align:right;
+}
+
+/* ol.tagit.search.directory-list li span.tag {
+    font-size:0.7em;
+    border-radius:6px;
+    padding: 1px 4px;
+    box-shadow: 2px 2px 3px grey;
+    border: darkred 1px solid;
+    background-color: darkred;
+    color: white;
+} */
+
+ol.tagit.search.directory-list li div.tag.collection {
+    font-size:0.7em;
+}
+
+span.tagit.tag {
+    border-radius:6px;
+    padding: 1px 4px;
+    box-shadow: 2px 2px 3px grey;
+    border: darkred 1px solid;
+    background-color: darkred;
+    color: white;
+}
+
+span.tagit.tag:not(:first-child) {
+    margin-left: 0.5em;
+}
+
+/* ol.tagit.search.directory-list li span.tag.entity-type {
+    border:yellow 1px solid;
+    background:yellow;
+    color: black;
+} */
+
+span.tagit.tag.entity-type {
+    border:yellow 1px solid;
+    background:yellow;
+    color: black;
 }
 
 .directory-header .tagit.collection {

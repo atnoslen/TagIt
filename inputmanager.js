@@ -29,9 +29,14 @@ export class TagItInputManager {
             // Check if tag already in list.
             if (items.length == 0) {
                 
-                const ele = $('<div>')
-                .addClass(`${mod}`)
-                .addClass('item')
+                // const ele = $('<div>')
+                // .addClass(`${mod}`)
+                // .addClass('item')
+                // .text(tag);
+
+                const ele = $('<span>')
+                .addClass('tagit')
+                .addClass('tag')
                 .text(tag);
 
                 if (options.readonly === false) {
@@ -70,7 +75,12 @@ export class TagItInputManager {
      * 
      */
     static calculateAutocompleteList(form) {
-        const items = $('.tagit.item', form.element).map(function() {
+        const collection = $('div.tagit.collection', form.element);
+        // const items = $('.tagit.item', collection).map(function() {
+        //     return $(this).text();
+        // }).get();
+
+        const items = $('span.tag', collection).map(function() {
             return $(this).text();
         }).get();
     
