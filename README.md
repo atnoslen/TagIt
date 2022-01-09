@@ -53,7 +53,6 @@ Filter results by entity type.
 
 * Enable drag and drop
 * Add search capability for any flag
-* Add module section to manage tags (including renaming / removing)
 
 # Compatibility
 
@@ -64,3 +63,13 @@ Filter results by entity type.
 
 ## V0.1.0
 The beginning
+
+## v0.2
+
+* Standardized tags to `span` objects to be used throughout
+* Included all tags on search
+* Entity type is visually represented as a tag
+* Can manage tags in module settings including
+  * Renaming tags
+  * Removing individual tags
+* Remove all tags in module settings
