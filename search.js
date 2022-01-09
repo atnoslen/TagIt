@@ -300,8 +300,6 @@ export class TagItSearch extends FormApplication {
             const tokenResults = canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))));
 
             result = result.concat(
-                // canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))))
-                // .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
                 canvas.tokens.getDocuments().filter(a => tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || tags.some(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
                 .map(a => {
                     return {
@@ -350,7 +348,7 @@ Hooks.once('ready', async () => {
     window.addEventListener('keypress', (e) => {
         if (e.shiftKey && e.ctrlKey && e.code === 'KeyF') {
             if (form === null) {
-                form = new TagItSearch(); // data, options
+                form = new TagItSearch();
             }
 
             if (!(form.rendered)) {

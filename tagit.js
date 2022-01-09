@@ -102,13 +102,6 @@ class TagIt extends FormApplication {
     
     async _updateObject(event, formData) {
         if (game.user.isGM) {
-            // var items = $('.tagit.item', this.element)
-            // .map(function() {
-            //     if ($('i.fa-times-circle', this).length > 0) {
-            //         return $(this).text();
-            //     }
-            // }).get().sort();
-
             const collection = $('div.tagit.collection', this.element);
 
             const items = $('span.tag', collection)
