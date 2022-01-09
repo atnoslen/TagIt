@@ -1,4 +1,4 @@
-import { Settings } from "./settings.js";
+import { Settings, mod } from "./settings.js";
 import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
@@ -21,7 +21,7 @@ class TagIt extends FormApplication {
 
     static get defaultOptions() {
         const options = super.defaultOptions;
-        options.template = "modules/tagit/templates/template.html";
+        options.template = `modules/${mod}/templates/template.html`;
         options.width = '600';
         options.height = '700';
         options.classes = ['tagit', 'sheet'];
@@ -36,7 +36,7 @@ class TagIt extends FormApplication {
 
         await TagItPackCache.refresh();
 
-        this.tags = this.entity.getFlag('tagit', 'tags');
+        this.tags = this.entity.getFlag(mod, 'tags');
         this.tagcache = await TagItTagManager.getUsedTags();
         
         data.tags = this.tags
@@ -63,22 +63,22 @@ class TagIt extends FormApplication {
 
         TagItInputManager.calculateAutocompleteList(_this);
     
-        $('#taginput' + _this.appId, html).on('input', function (event) {
+        $(`#taginput${_this.appId}`, html).on('input', function (event) {
             if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
                 // Selected a tag from dropdown
                 TagItInputManager.addtag(this.value, _this);
             }
         });
     
-        $('#taginput' + _this.appId, html).on('keypress', function(event) {
+        $(`#taginput${_this.appId}`, html).on('keypress', function(event) {
             if (event.keyCode === 13) {
                 event.preventDefault();
     
-                TagItInputManager.addtag($('#taginput' + _this.appId, html).val(), _this);
+                TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this);
             }
         });
     
-        $('#taginput' + _this.appId, html).focus();
+        $(`#taginput${_this.appId}`, html).focus();
     }
     
     async _updateObject(event, formData) {
@@ -88,13 +88,13 @@ class TagIt extends FormApplication {
                     return $(this).text();
                 }).get().sort();
 
-            await this.entity.setFlag('tagit', 'tags', items);
+            await this.entity.setFlag(mod, 'tags', items);
 
-            var cache = game.settings.get('tagit', 'tags');
+            var cache = game.settings.get(mod, 'tags');
 
             cache = [...new Set([...items,...cache])].sort();
 
-            await game.settings.set('tagit', 'tags', cache);
+            await game.settings.set(mod, 'tags', cache);
 
             this.render();
         } else {
@@ -104,13 +104,10 @@ class TagIt extends FormApplication {
 
     static _initEntityHook(app, html, data) {
         if (game.user.isGM) {
-            let labelTxt = '';
-            let labelStyle= "";
             let title = game.i18n.localize('TagIt.label'); 
+            let labelTxt = `${title}`;
 
-            labelTxt = ' ' + title
-
-            let openBtn = $(`<a class="open-tagit" title="${title}" ${labelStyle} ><i class="fas fa-clipboard"></i>${labelTxt}</a>`);
+            let openBtn = $(`<a class="open-${mod}" title="${title}"><i class="fas fa-clipboard"></i>${labelTxt}</a>`);
             openBtn.click(ev => {
                 let _app = null;
                 for (let key in app.document.apps) {
@@ -123,7 +120,7 @@ class TagIt extends FormApplication {
                 if (!_app) _app = new TagIt(app.document, { submitOnClose: true, closeOnSubmit: false, submitOnUnfocus: true });
                 _app.render(true);
             });
-            html.closest('.app').find('.open-tagit').remove();
+            html.closest('.app').find(`.open-${mod}`).remove();
             let titleElement = html.closest('.app').find('.window-title');
             openBtn.insertAfter(titleElement);
         }
@@ -144,7 +141,7 @@ Hooks.on('renderItemSheet', (app, html, data) => {
 Hooks.once('ready', async () => {
     Settings.registerSettings();
 
-    game.modules.get('tagit').api = {
+    game.modules.get(mod).api = {
         search: TagItSearch.getResults,
         packCache: TagItPackCache
     };

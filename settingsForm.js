@@ -1,9 +1,12 @@
-import { Settings } from './settings.js';
-//import { getUsedTags } from './tagit.js';
+import { Settings, mod } from './settings.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
+import { TagItInputManager } from "./inputmanager.js"
+import { EditTag } from "./edittag.js"
 
 export class SettingsForm extends FormApplication {
+    tags = [];
+    
     /**
      * Default Options for this FormApplication
      *
@@ -13,9 +16,9 @@ export class SettingsForm extends FormApplication {
      */
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
-            id: "tagit-settings-form",
+            id: `${mod}-settings-form`,
             title: game.i18n.localize("TagIt.SettingTitle"),
-            template: "modules/tagit/templates/settings.html",
+            template: `modules/${mod}/templates/settings.html`,
             classes: ["sheet"],
             width: 500,
             height: 500,
@@ -35,12 +38,65 @@ export class SettingsForm extends FormApplication {
         const data = super.getData();
 
         await TagItPackCache.refresh();
+        this.tags = await TagItTagManager.getUsedTags();
 
-        data.tagcache = await TagItTagManager.getUsedTags();
+        data.tags = this.tags;
         data.owner = game.user.id;
         data.isGM = game.user.isGM;
+        data.appId = this.appId;
 
         return data;
+    }
+
+    /**
+     * Load the tag into the form.
+     *
+     * @readonly
+     * @static
+     * @memberof SettingsForm
+     */
+    async loadTags() {
+        const _this = this;
+        await TagItPackCache.refresh();
+        _this.tags = await TagItTagManager.getUsedTags();
+
+        const container = $('ol.tagit.search.directory-list', this.element).empty();
+
+        for (const tag of _this.tags) {
+            container.append(
+                $('<li>')
+                .addClass('directory-item')
+                .addClass('flexrow')
+                .css('display', 'flex')
+                .css('line-height', '32px')
+                .append(
+                    $('<h4>')
+                    .addClass('entry-name')
+                    .append(
+                        $('<a>')
+                        .text(tag)
+                        .on('click', function() {
+                            const data = {
+                                tag: $(this).text(),
+                                onsubmit: function () {
+                                    _this.loadTags();
+                                }
+                            }
+                            const editApp = new EditTag(data).render(true);
+                        })
+                    )
+                )
+            );
+        }
+    }
+
+    activateListeners(html) {
+        const _this = this;
+        super.activateListeners(html);
+
+        _this.loadTags();
+    
+        $(`#taginput${_this.appId}`, html).focus();
     }
 
     /**
@@ -51,19 +107,5 @@ export class SettingsForm extends FormApplication {
      * @memberof SettingsForm
      */
     async _updateObject(event, data) {
-        if (game.user.isGM) {
-            //await this.entity.setFlag('tagit', 'tags', formData["flags.tagit.tags"]);
-
-            var items = $('.tagit.item', this.element).map(
-                function() {
-                    return $(this).text();
-                }).get().sort();
-
-            await game.settings.set('tagit', 'tags', items);
-
-            //this.render();
-        } else {
-            ui.notifications.error("You have to be GM to update journal tags");
-        }
     }
 }

@@ -1,3 +1,8 @@
+div.directory.tagit.search-app {
+    overflow-y:hidden;
+    height:100%;
+}
+
 .tagit.collection {
     display:flex;
     flex-direction:row;
@@ -12,12 +17,28 @@
     border-radius: 5px
 }
 
+.tagit.entity-filter {
+    text-align: left;
+}
+
+.tagit.entity-filter input[type=checkbox] {
+    vertical-align:middle;
+}
+
 .tagit.collection .fas.fa-times-circle {
     margin-left:5px;
+}
+
+.tagit.search.directory-list .directory-item {
+    padding-right: 4px;
 }
 
 .tagit.search.directory-list .directory-item h4 span {
     font-size:0.8em;
     margin-left: 1em;
     float:right;
+}
+
+.directory-header .tagit.collection {
+    line-height: normal;
 }
