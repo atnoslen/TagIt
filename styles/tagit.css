@@ -78,8 +78,8 @@ span.tagit.tag {
     color: white;
 }
 
-span.tagit.tag:not(:first-child) {
-    margin-left: 0.5em;
+span.tagit.tag {
+    margin: 0.1em;
 }
 
 span.tagit.tag.entity-type {
