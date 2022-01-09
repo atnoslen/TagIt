@@ -39,21 +39,11 @@ class TagIt extends FormApplication {
 
         await TagItPackCache.refresh();
 
-        console.log(this.entity);
+        this.tags = this.entity.getFlag(mod, 'tags');
 
-        switch(this.entity.documentName) {
-            case 'JournalEntry':
-            case 'Item':
-                this.tags = this.entity.getFlag(mod, 'tags');
-                break;
-            case 'Actor':
-                if (this.entity.isToken) {
-                    this.tags = this.entity.token.getFlag(mod, 'tags');
-                    this.readOnlyTags = this.entity.getFlag(mod, 'tags');
-                } else {
-                    this.tags = this.entity.getFlag(mod, 'tags');
-                }
-                break;
+        if (this.entity.documentName === 'Actor' && this.entity.isToken) {
+            this.tags = this.entity.token.getFlag(mod, 'tags');
+            this.readOnlyTags = this.entity.getFlag(mod, 'tags');
         }
 
         this.tagcache = await TagItTagManager.getUsedTags();
@@ -112,24 +102,24 @@ class TagIt extends FormApplication {
     
     async _updateObject(event, formData) {
         if (game.user.isGM) {
-            var items = $('.tagit.item', this.element).map(
-                function() {
+            var items = $('.tagit.item', this.element)
+            .map(function() {
+                if ($('i.fa-times-circle', this).length > 0) {
                     return $(this).text();
-                }).get().sort();
-
-            switch(this.entity.documentName) {
-                case 'JournalEntry':
-                case 'Item':
-                    await this.entity.setFlag(mod, 'tags', items);
-                    break;
-                case 'Actor':
-                    if (this.entity.isToken) {
-                        await this.entity.token.setFlag(mod, 'tags', items);
-                    } else {
-                        await this.entity.setFlag(mod, 'tags', items);
-                    }
-                    break;
                 }
+            }).get().sort();
+
+            let entity = this.entity;
+
+            if (this.entity.documentName === "Actor" && this.entity.isToken) {
+                entity = this.entity.token;
+            }
+
+            if (items.length > 0) {
+                await entity.setFlag(mod, 'tags', items);
+            } else {
+                await entity.unsetFlag(mod, 'tags');
+            }
 
             var cache = game.settings.get(mod, 'tags');
 

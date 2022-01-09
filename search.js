@@ -212,15 +212,11 @@ export class TagItSearch extends FormApplication {
         }
 
         if (entities.includes('tokens')) {
-            result = result.concat(
-                canvas.tokens.objects?.children?.filter(a => tags.every(b => a.data.actorData?.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.icon.src}})
-            );
 
             result = result.concat(
-                canvas.tokens.objects?.children?.filter(a => tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.icon.src}})
-            );
+                canvas.tokens.getDocuments().filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
+                .map(a => { return {entity: "Token", id: a.id, name: a.name, img: a.data.img}})
+            )
         }
 
         if (entities.includes('packs')) {
