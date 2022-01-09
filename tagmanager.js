@@ -23,9 +23,10 @@ export class TagItTagManager {
         })
         .flat();
     
-        const tokentags = canvas.tokens.objects?.children?.filter(a => a.data.actorData?.flags?.tagit?.tags?.length > 0)
+        //canvas.tokens.getDocuments().filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
+        const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(e => {
-            return e.data.actorData.flags.tagit.tags;
+            return e.data.flags.tagit.tags;
         })
         .flat();
     
