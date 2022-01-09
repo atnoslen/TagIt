@@ -33,6 +33,6 @@ export class TagItTagManager {
         .map(a => a.flags.tagit.tags)
         .flat();
     
-        return [...new Set([].concat(journaltags, actortags, itemtags, tokentags, packtags))];
+        return [...new Set([].concat(journaltags, actortags, itemtags, tokentags, packtags))].sort();
     }
 }
