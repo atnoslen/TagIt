@@ -56,8 +56,9 @@ Filter results by entity type.
 
 # Compatibility
 
-* PF2e
-* Should work with any JournalEntry, Actor, or Item
+* PF2e - Tested
+* DnD5e - Tested
+* Any system that does not make significant changes to the way JournalEntries, Actors, Items, Tokens, and Compendiums are accessed.
 
 # Changelog
 
