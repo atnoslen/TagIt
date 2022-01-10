@@ -7,7 +7,7 @@ export class TagItInput {
      * @param {String} tag - The tag to be added
      * @param {Object.<string, Object>} [options={updateAutocomplete=true}] - Options
      */
-     static addtag(form, options) {
+     static addtag(tag, form, options) {
         const defaults = {
             updateAutocomplete: true,
             readonly: false,
@@ -17,7 +17,11 @@ export class TagItInput {
         };
         options = $.extend({}, defaults, options || {});
 
-        const tag = $.trim($(`#taginput${form.appId}`, form.element).val());
+        if (!tag) {
+            tag = $(`#taginput${form.appId}`, form.element).val();
+        }
+
+        tag = $.trim(tag);
     
         if (tag) {
             const collection = $('div.tagit.input div.tag.collection', form.element);
@@ -93,11 +97,20 @@ export class TagItInput {
     }
 
     static registerListeners(form, options) {
+        const defaults = {
+            updateAutocomplete: true,
+            readonly: false,
+            onUpdate: null,
+            onAddTag: null,
+            onRemoveTag: null
+        };
+        options = $.extend({}, defaults, options || {});
+
         $(`#taginput${form.appId}`, form.element).on('input', function (event) {
             if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
                 // Selected a tag from dropdown
 
-                TagItInput.addtag(form, {
+                TagItInput.addtag(this.value, form, {
                     onUpdate: options.onUpdate,
                     onAddTag: options.onAddTag
                 });
@@ -108,7 +121,7 @@ export class TagItInput {
             if (event.keyCode === 13) {
                 event.preventDefault();
 
-                TagItInput.addtag(form, {
+                TagItInput.addtag($(`#taginput${form.appId}`, form.element).val(), form, {
                     onUpdate: options.onUpdate,
                     onAddTag: options.onAddTag
                 });

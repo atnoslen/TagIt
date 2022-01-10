@@ -3,6 +3,7 @@ import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInputManager } from "./inputmanager.js"
+import { TagItInput } from "./input.js";
 
 class TagIt extends FormApplication {
 
@@ -25,8 +26,8 @@ class TagIt extends FormApplication {
     static get defaultOptions() {
         const options = super.defaultOptions;
         options.template = `modules/${mod}/templates/template.html`;
-        options.width = '600';
-        options.height = '700';
+        options.width = '400';
+        options.height = '250';
         options.classes = ['tagit', 'sheet'];
         options.title = game.i18n.localize('TagIt.label');
         options.resizable = true;
@@ -62,10 +63,15 @@ class TagIt extends FormApplication {
         const _this = this;
         super.activateListeners(html);
 
+        
+
+        //TagItInputManager.calculateAutocompleteList(_this);
+        
+
         if (_this.readOnlyTags) {
             // Render read only version for tags.
             _this.readOnlyTags.forEach(tag => {
-                TagItInputManager.addtag(tag, _this, {
+                TagItInput.addtag(tag, _this, {
                     updateAutocomplete: false,
                     readonly: true
                 });
@@ -74,35 +80,36 @@ class TagIt extends FormApplication {
 
         if (_this.tags) {
             _this.tags.forEach(tag => {
-                TagItInputManager.addtag(tag, _this, {
+                TagItInput.addtag(tag, _this, {
                     updateAutocomplete: false
                 });
             });
         }
 
-        TagItInputManager.calculateAutocompleteList(_this);
+        TagItInput.calculateAutocompleteList(_this);
+        TagItInput.registerListeners(_this);
     
-        $(`#taginput${_this.appId}`, html).on('input', function (event) {
-            if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
-                // Selected a tag from dropdown
-                TagItInputManager.addtag(this.value, _this);
-            }
-        });
+        // $(`#taginput${_this.appId}`, html).on('input', function (event) {
+        //     if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
+        //         // Selected a tag from dropdown
+        //         TagItInput.addtag(this.value, _this);
+        //     }
+        // });
     
-        $(`#taginput${_this.appId}`, html).on('keypress', function(event) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
+        // $(`#taginput${_this.appId}`, html).on('keypress', function(event) {
+        //     if (event.keyCode === 13) {
+        //         event.preventDefault();
     
-                TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this);
-            }
-        });
+        //         TagItInput.addtag($(`#taginput${_this.appId}`, html).val(), _this);
+        //     }
+        // });
     
-        $(`#taginput${_this.appId}`, html).focus();
+        // $(`#taginput${_this.appId}`, html).focus();
     }
     
     async _updateObject(event, formData) {
         if (game.user.isGM) {
-            const collection = $('div.tagit.collection', this.element);
+            const collection = $('div.tag.collection', this.element);
 
             const items = $('span.tag', collection)
             .map(function() {
