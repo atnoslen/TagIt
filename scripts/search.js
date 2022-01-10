@@ -306,6 +306,7 @@ export class TagItSearch extends FormApplication {
                         img: a.data.img,
                         tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
                               .filter(item => item !== undefined)
+                              .sort()
                     };
                 })
                 .filter(a => tags.every(b => a.tags.includes(b)))
