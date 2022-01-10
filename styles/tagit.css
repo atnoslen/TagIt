@@ -19,6 +19,7 @@ div.directory.tagit.search-app {
 
 .tagit.entity-filter {
     text-align: left;
+    line-height: normal;
 }
 
 .tagit.entity-filter input[type=checkbox] {

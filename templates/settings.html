@@ -1,17 +1,7 @@
 <form autocomplete="off" onsubmit="event.preventDefault()" style="height:100%; overflow:hidden;">
     <div class="directory flexcol tagit search-app">
-        <header class="directory-header flexrow">
-            <div class="header-search flexrow" style="flex-basis: 100%;">
-                <i class="fas fa-search"></i>
-                <input type="text" list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
-            </div>
-            <datalist id="tagcache{{appId}}">
-                {{#each tags}}
-                <option value="{{this}}"></option>
-                {{/each}}
-            </datalist>
+        <header class="directory-header flexcol">
+            {{> 'modules/tagit/templates/input-partial.html' this}}
         </header>
-        <ol class="tagit search directory-list">
-        </ol>
     </div>
 </form>
