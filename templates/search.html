@@ -1,13 +1,7 @@
 <form style="height:100%; overflow:hidden;">
     <div class="directory flexcol tagit search-app">
-        <header class="directory-header flexrow">
-            <div class="header-search flexrow" style="flex-basis: 100%;">
-                <i class="fas fa-search"></i>
-                <input type="text" list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
-                <button class="tagit search refresh" type="button"><i class="fas fa-redo center"></i></button>
-            </div>
-            <datalist id="tagcache{{appId}}">
-            </datalist>
+        <header class="directory-header flexcol">
+            {{> 'modules/tagit/templates/input-partial.html' this}}
             <div class="tagit entity-filter">
                 <label for="journalentries">
                     <input type="checkbox" id="journalentries" name="JournalEntry" checked>Journals
@@ -25,7 +19,6 @@
                     <input type="checkbox" id="packs" name="Pack" checked>Compendiums
                 </label>
             </div>
-            <div class="tagit collection" style="flex-basis:100%"></div>
         </header>
         <ol class="tagit search directory-list">
         </ol>

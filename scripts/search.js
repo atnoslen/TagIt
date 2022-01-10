@@ -2,6 +2,7 @@ import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInputManager } from "./inputmanager.js";
+import { TagItInput } from "./input.js";
 
 export class TagItSearch extends FormApplication {
 
@@ -40,43 +41,36 @@ export class TagItSearch extends FormApplication {
         const _this = this;
         super.activateListeners(html);
 
-        TagItInputManager.calculateAutocompleteList(_this);
+        TagItInput.calculateAutocompleteList(_this);
 
-        $('#taginput' + _this.appId, html).on('input', function (event) {
-            if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
-                // Selected a tag from dropdown
-
-                TagItInputManager.addtag(this.value, _this, {
-                    onUpdate: () => {
-                        _this._renderResults();
-                    }
-                });
+        const options = {
+            onUpdate: () => {
+                _this._renderResults();
             }
-        });
-    
-        $('#taginput' + _this.appId, html).on('keypress', function(event) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
+        }
 
-                TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this, {
-                    onUpdate: () => {
-                        _this._renderResults();
-                    }
-                });
-            }
-        });
+        TagItInput.registerListeners(_this, options);
 
         $('.entity-filter', html).change(function() {
             _this._renderResults();
         });
 
-        $('button.search.refresh', html).on("click", async function() {
+        // Add refresh button
+        $('div.tagit.tag.input').append(
+            $('<button type="button">')
+            .addClass(['tagit', 'search', 'refresh'])
+            .css('flex-basis', 'content')
+            .append(
+                $('<i>')
+                .addClass(['fas', 'fa-redo', 'center'])
+            )
+            .on("click", async function() {
+                await TagItPackCache.refresh();
+                _this.tagcache = await TagItTagManager.getUsedTags();
 
-            await TagItPackCache.refresh();
-            _this.tagcache = await TagItTagManager.getUsedTags();
-
-            _this._renderResults();
-        });
+                _this._renderResults();
+            })
+        );
 
         $(`#taginput${_this.appId}`, html).focus();
     }
@@ -88,187 +82,190 @@ export class TagItSearch extends FormApplication {
     _renderResults() {
         const _this = this;
 
-        const collection = $('div.tagit.collection', _this.element);
+        const collection = $('div.tagit.input div.tag.collection', _this.element);
         const items = $('span.tag', collection).map(function() {
             return $(this).text();
         }).get();
 
         $('.search.directory-list', _this.element).empty();
 
-        if (items.length > 0) {
-            var entities = [];
-            $('.tagit.entity-filter input:checked', _this.element).each(function(){
-                entities.push($(this).attr('name'));
-            });
+        if (items.length === 0) {
+            // No need to render any objects.
+            return;
+        }
 
-            const results = TagItSearch.getResults(items, entities);
+        var entities = [];
+        $('.tagit.entity-filter input:checked', _this.element).each(function(){
+            entities.push($(this).attr('name'));
+        });
 
-            results.forEach(a => {
-                let item = $('<li>')
-                .attr('data-document-id', a.id)
-                .attr('data-type', a.entity)
-                .addClass('directory-item')
-                .addClass('flexrow')
-                .css({"display":"flex"});
+        const results = TagItSearch.getResults(items, entities);
 
-                if (a.img) {
-                    $(item).append(
-                        $('<img>')
-                        .addClass('profile')
-                        .attr('src', a.img)
-                        .attr('title', a.name)
-                    );
-                }
+        results.forEach(a => {
+            let item = $('<li>')
+            .attr('data-document-id', a.id)
+            .attr('data-type', a.entity)
+            .addClass('directory-item')
+            .addClass('flexrow')
+            .css({"display":"flex"});
 
+            if (a.img) {
                 $(item).append(
-                    $('<div>')
-                    .addClass('entry-name')
+                    $('<img>')
+                    .addClass('profile')
+                    .attr('src', a.img)
+                    .attr('title', a.name)
+                );
+            }
+
+            $(item).append(
+                $('<div>')
+                .addClass('entry-name')
+                .append(
+                    $('<h4>')
                     .append(
-                        $('<h4>')
+                        $('<a>').text(a.name)
+                    )
+                )
+            );
+
+            switch(a.entity) {
+                case "JournalEntry":
+                    $(item).addClass('journalentry');
+
+                    $('a', item).on("click", function () {
+                        game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+                    });
+
+                    $('div.entry-name', item)
+                    .append(
+                        $('<div>')
+                        .addClass('tag')
+                        .addClass('collection')
                         .append(
-                            $('<a>').text(a.name)
+                            $('<span>')
+                            .addClass('tagit')
+                            .addClass('tag')
+                            .addClass('entity-type')
+                            .text('JournalEntry')
+                        )
+                    );
+
+                    break;
+                case "Actor":
+                    $(item).addClass('actor');
+
+                    $('a', item).on("click", function () {
+                        game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+                    });
+
+                    $('div.entry-name', item)
+                    .append(
+                        $('<div>')
+                        .addClass('tag')
+                        .addClass('collection')
+                        .append(
+                            $('<span>')
+                            .addClass('tagit')
+                            .addClass('tag')
+                            .addClass('entity-type')
+                            .text('Actor')
+                        )
+                    );
+
+                    break;
+                case "Item":
+                    $(item).addClass('item');
+
+                    $('a', item).on("click", function () {
+                        game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+                    });
+
+                    $('div.entry-name', item)
+                    .append(
+                        $('<div>')
+                        .addClass('tag')
+                        .addClass('collection')
+                        .append(
+                            $('<span>')
+                            .addClass('tagit')
+                            .addClass('tag')
+                            .addClass('entity-type')
+                            .text('Item')
+                        )
+                    );
+
+                    break;
+                case "Token":
+                    $(item).addClass('token');
+
+                    $('a', item).on("click", function () {
+                        canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
+                    });
+
+                    $('div.entry-name', item)
+                    .append(
+                        $('<div>')
+                        .addClass('tag')
+                        .addClass('collection')
+                        .append(
+                            $('<span>')
+                            .addClass('tagit')
+                            .addClass('tag')
+                            .addClass('entity-type')
+                            .text('Token')
+                        )
+                    );
+
+                    break;
+                case "Pack":
+                    $(item).addClass('pack')
+                    .attr('data-pack', a.pack);
+
+                    $('a', item).on("click", function () {
+                        game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
+                    });
+
+                    $('div.entry-name', item)
+                    .append(
+                        $('<div>')
+                        .addClass('tag')
+                        .addClass('collection')
+                        .append(
+                            $('<span>')
+                            .addClass('tagit')
+                            .addClass('tag')
+                            .addClass('entity-type')
+                            .text(a.type)
                         )
                     )
-                );
 
-                switch(a.entity) {
-                    case "JournalEntry":
-                        $(item).addClass('journalentry');
-
-                        $('a', item).on("click", function () {
-                            game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
-                        });
-
-                        $('div.entry-name', item)
+                    $(item).append(
+                        $('<div>')
+                        .addClass('entity-info')
                         .append(
-                            $('<div>')
-                            .addClass('tag')
-                            .addClass('collection')
-                            .append(
-                                $('<span>')
-                                .addClass('tagit')
-                                .addClass('tag')
-                                .addClass('entity-type')
-                                .text('JournalEntry')
-                            )
-                        );
-
-                        break;
-                    case "Actor":
-                        $(item).addClass('actor');
-
-                        $('a', item).on("click", function () {
-                            game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
-                        });
-
-                        $('div.entry-name', item)
-                        .append(
-                            $('<div>')
-                            .addClass('tag')
-                            .addClass('collection')
-                            .append(
-                                $('<span>')
-                                .addClass('tagit')
-                                .addClass('tag')
-                                .addClass('entity-type')
-                                .text('Actor')
-                            )
-                        );
-
-                        break;
-                    case "Item":
-                        $(item).addClass('item');
-
-                        $('a', item).on("click", function () {
-                            game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
-                        });
-
-                        $('div.entry-name', item)
-                        .append(
-                            $('<div>')
-                            .addClass('tag')
-                            .addClass('collection')
-                            .append(
-                                $('<span>')
-                                .addClass('tagit')
-                                .addClass('tag')
-                                .addClass('entity-type')
-                                .text('Item')
-                            )
-                        );
-
-                        break;
-                    case "Token":
-                        $(item).addClass('token');
-
-                        $('a', item).on("click", function () {
-                            canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
-                        });
-
-                        $('div.entry-name', item)
-                        .append(
-                            $('<div>')
-                            .addClass('tag')
-                            .addClass('collection')
-                            .append(
-                                $('<span>')
-                                .addClass('tagit')
-                                .addClass('tag')
-                                .addClass('entity-type')
-                                .text('Token')
-                            )
-                        );
-
-                        break;
-                    case "Pack":
-                        $(item).addClass('pack')
-                        .attr('data-pack', a.pack);
-
-                        $('a', item).on("click", function () {
-                            game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
-                        });
-
-                        $('div.entry-name', item)
-                        .append(
-                            $('<div>')
-                            .addClass('tag')
-                            .addClass('collection')
-                            .append(
-                                $('<span>')
-                                .addClass('tagit')
-                                .addClass('tag')
-                                .addClass('entity-type')
-                                .text(a.type)
-                            )
+                            $('<p>')
+                            .text(`(${a.pack})`)
                         )
-
-                        $(item).append(
-                            $('<div>')
-                            .addClass('entity-info')
-                            .append(
-                                $('<p>')
-                                .text(`(${a.pack})`)
-                            )
-                        );
-
-                        break;
-                }
-
-                const collectionElement = $('div.tag.collection', item);
-
-                for (const tag of a.tags) {
-                    $(collectionElement)
-                    .append(
-                        $('<span>')
-                        .addClass('tagit')
-                        .addClass('tag')
-                        .text(tag)
                     );
-                }
 
-                $('.search.directory-list', _this.element).append(item);
-            });
-        }
+                    break;
+            }
+
+            const collectionElement = $('div.tag.collection', item);
+
+            for (const tag of a.tags) {
+                $(collectionElement)
+                .append(
+                    $('<span>')
+                    .addClass('tagit')
+                    .addClass('tag')
+                    .text(tag)
+                );
+            }
+
+            $('.search.directory-list', _this.element).append(item);
+        });
     }
 
     static getResults(tags, entities = []) {
@@ -343,6 +340,14 @@ export class TagItSearch extends FormApplication {
 }
 
 let form = null;
+
+Hooks.once("init", function() {
+    const partials = [
+        `modules/${mod}/templates/input-partial.html`
+    ]
+
+    console.log(loadTemplates(partials));
+});
 
 Hooks.once('ready', async () => {
     window.addEventListener('keypress', (e) => {
