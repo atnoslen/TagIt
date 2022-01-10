@@ -56,7 +56,7 @@ export class TagItSearch extends FormApplication {
         });
 
         // Add refresh button
-        $('div.tagit.tag.input').append(
+        $('div.tagit.tag.input', html).append(
             $('<button type="button">')
             .addClass(['tagit', 'search', 'refresh'])
             .css('flex-basis', 'content')

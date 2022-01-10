@@ -59,34 +59,47 @@ export class SettingsForm extends FormApplication {
         const _this = this;
         await TagItPackCache.refresh();
         _this.tags = await TagItTagManager.getUsedTags();
+        
+        const text = $(`#taginput${_this.appId}`, _this.element)
+        .val()
+        .toLowerCase()
+        .trim();
 
-        const container = $('ol.tagit.search.directory-list', this.element).empty();
+        let tags = _this.tags;
 
-        for (const tag of _this.tags) {
+        if (text.length > 0) {
+            // Has filter in place
+            tags = tags.filter(a => a.toLowerCase().includes(text));
+        }
+
+        _this.loadContainer(tags);
+    }
+
+    loadContainer(tags) {
+        const _this = this;
+        const container = $('div.tag.collection', _this.element).empty();
+
+        for (const tag of tags) {
             container.append(
-                $('<li>')
-                .addClass('directory-item')
-                .addClass('flexrow')
-                .css('display', 'flex')
-                .css('line-height', '32px')
+                $('<span>')
+                .addClass('tagit')
+                .addClass('tag')
+                .css('cursor','pointer')
+                .css('margin','0.2em')
                 .append(
-                    $('<h4>')
-                    .addClass('entry-name')
-                    .append(
-                        $('<a>')
-                        .text(tag)
-                        .on('click', function() {
-                            const data = {
-                                tag: $(this).text(),
-                                onsubmit: function () {
-                                    _this.loadTags();
-                                }
+                    $('<a>')
+                    .text(tag)
+                    .on('click', function() {
+                        const data = {
+                            tag: $(this).text(),
+                            onsubmit: function () {
+                                _this.loadTags();
                             }
-                            const editApp = new EditTag(data).render(true);
-                        })
-                    )
+                        }
+                        const editApp = new EditTag(data).render(true);
+                    })
                 )
-            );
+            )
         }
     }
 
@@ -94,9 +107,33 @@ export class SettingsForm extends FormApplication {
         const _this = this;
         super.activateListeners(html);
 
+        $('div.tag.collection', html)
+        .css('flex','auto');
+
         _this.loadTags();
-    
-        $(`#taginput${_this.appId}`, html).focus();
+
+        $(`#taginput${_this.appId}`, html)
+        .on('keyup', function(event) {
+            const text = $(this)
+            .val()
+            .toLowerCase()
+            .trim();
+
+            let tags = _this.tags;
+
+            if (text.length > 0) {
+                tags = tags.filter(a => a.toLowerCase().includes(text));
+            }
+
+            _this.loadContainer(tags);
+
+        })
+        .on('keypress', function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+            }
+        })
+        .focus();
     }
 
     /**
