@@ -172,6 +172,12 @@ Hooks.on('renderItemSheet', (app, html, data) => {
     TagIt._initEntityHook(app, html, data);
 });
 
+Hooks.on('renderSceneConfig', (app, html, data) => {
+    console.log('test');
+    TagIt._initEntityHook(app, html, data);
+    console.log('test');
+});
+
 Hooks.once('ready', async () => {
     Settings.registerSettings();
 

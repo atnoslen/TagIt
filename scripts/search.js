@@ -15,7 +15,7 @@ export class TagItSearch extends FormApplication {
     static get defaultOptions() {
         const options = super.defaultOptions;
         options.template = `modules/${mod}/templates/search.html`;
-        options.width = '450';
+        options.width = '525';
         options.height = '500';
         options.title = game.i18n.localize('TagIt.Search.title');
         options.resizable = true;
@@ -152,6 +152,28 @@ export class TagItSearch extends FormApplication {
                     );
 
                     break;
+                case "Scene":
+                        $(item).addClass('scene');
+    
+                        $('a', item).on("click", function () {
+                            game.scenes.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+                        });
+    
+                        $('div.entry-name', item)
+                        .append(
+                            $('<div>')
+                            .addClass('tag')
+                            .addClass('collection')
+                            .append(
+                                $('<span>')
+                                .addClass('tagit')
+                                .addClass('tag')
+                                .addClass('entity-type')
+                                .text('Scene')
+                            )
+                        );
+    
+                        break;
                 case "Actor":
                     $(item).addClass('actor');
 
@@ -279,6 +301,13 @@ export class TagItSearch extends FormApplication {
             );
         }
 
+        if (entities.includes('Scene')) {
+            result = result.concat(
+                game.scenes.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
+                .map(a => { return {entity: "Scene", id: a.id, name: a.name, img: a.data.thumb, tags: a.data.flags.tagit.tags}})
+            );
+        }
+
         if (entities.includes('Actor')) {
             result = result.concat(
                 game.actors.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
@@ -318,7 +347,7 @@ export class TagItSearch extends FormApplication {
             let packtags = [];
             for (const pack of TagItPackCache.index) {
                 packtags.push( pack.items.filter(a => entities.includes(pack.type) && tags.every(b => a.flags.tagit.tags.includes(b)))
-                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: a.img, tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
+                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: ((pack.type === "Scene") ? a.thumb : a.img), tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
             }
 
             packtags = packtags.flat();

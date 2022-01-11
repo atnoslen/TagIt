@@ -6,8 +6,8 @@ export class TagItPackCache {
     static _getPackIndexPromises() {
         const packIndexes = [];
     
-        for (const pack of game.packs.filter(a => a.metadata.entity === "Actor" || a.metadata.entity === "JournalEntry" || a.metadata.entity === "Item")) {
-            packIndexes.push({pack: pack.metadata.package, name: pack.metadata.name, type: pack.documentName, index: pack.getIndex({fields: ["flags","img"]})});
+        for (const pack of game.packs.filter(a => a.metadata.entity === "Actor" || a.metadata.entity === "JournalEntry" || a.metadata.entity === "Item" || a.metadata.entity === "Scene")) {
+            packIndexes.push({pack: pack.metadata.package, name: pack.metadata.name, type: pack.documentName, index: pack.getIndex({fields: ["flags","img","thumb"]})});
         }
     
         return packIndexes;
