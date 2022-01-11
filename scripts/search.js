@@ -367,6 +367,143 @@ export class TagItSearch extends FormApplication {
 
         return result;
     }
+
+    static async search(items, options) {
+        const promise = new Promise(async function(resolve, reject) {
+            try {
+                const defaultOptions = {
+                    filter: {
+                        entity: ['JournalEntry', 'Scene', 'Actor', 'Item', 'Token', 'Pack']
+                    },
+                    type: 'all',
+                    limit: 50
+                };
+        
+                options = mergeObject(defaultOptions, options);
+
+                if (!(['all','any'].includes(options.type))) {
+                    throw 'Invalid type.';
+                }
+
+                if (typeof options.limit !== 'number' || options.limit < 0) {
+                    throw 'Invalid limit'
+                }
+
+                const names = [];
+                const tags = [];
+                const tagWithNumbers = [];
+
+                for (const item of items) {
+                    if (item.startsWith('name:')) {
+                        // name item
+                        names.push(item.substring(5).toLowerCase());
+                    } else {
+                        // tag item
+                        tags.push(item);
+                    }
+                }
+
+                let result = [];
+
+                if (options.filter.entity.includes('JournalEntry')) {
+                    result = result.concat(
+                        game.journal.filter(a =>
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+
+                if (options.filter.entity.includes('Scene')) {
+                    result = result.concat(
+                        game.scenes.filter(a => 
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+
+                if (options.filter.entity.includes('Actor')) {
+                    result = result.concat(
+                        game.actors.filter(a => 
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+                
+                if (options.filter.entity.includes('Item')) {
+                    result = result.concat(
+                        game.items.filter(a => 
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+
+                if (options.filter.entity.includes('Token')) {
+                    result = result.concat(
+                        canvas.tokens.getDocuments().filter(a => 
+                            tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || a.actor?.data?.flags?.tagit?.tags?.includes(b)) ||
+                            names.some(b => a.name.toLowerCase().includes(b))
+                        )
+                        .map(a => {
+                            return {
+                                entity: a,
+                                tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                                    .filter(item => item !== undefined)
+                                    .sort()
+                            };
+                        })
+                        .filter(a => 
+                            ((options.type === 'all') && (tags.every(b => a.tags.includes(b)) && names.every(b => a.entity.name.toLowerCase().includes(b)))) || 
+                            ((options.type === 'any') && (tags.some(b => a.tags.includes(b)) || names.some(b => a.entity.name.toLowerCase().includes(b))))
+                        )
+                        .map(a => a.entity)
+                    )
+                }
+
+                if (options.filter.entity.includes('Pack')) {
+
+                    const index = await TagItPackCache.getFullIndex();
+
+                    let packtags = [];
+                    //for (const pack of TagItPackCache.index) {
+                    for (const pack of index) {
+                        packtags.push({
+                            pack: `${pack.pack}.${pack.name}`,
+                            id: pack.items.filter(a => options.filter.entity.includes(pack.type) &&
+                                    ((options.type === 'all') && (tags.every(b => a.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b)))) ||
+                                    ((options.type === 'any') && (tags.some(b => a.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                                )
+                                .map(a => a._id)
+                        });
+                    }
+
+                    let packentities = [];
+
+                    for (const index of packtags) {
+                        packentities.push(game.packs.get(index.pack).getDocuments({_id: { $in: index.id }}))
+                    }
+
+                    packentities = (await Promise.all(packentities)).flat();
+
+                    result = result.concat(packentities);
+                }
+
+                if (options.limit > 0) {
+                    result.splice(0, result.length - options.limit);
+                }
+
+                resolve(result);
+            } catch (e) {
+                reject(e);
+            }
+        });
+        
+
+       return promise;
+    }
 }
 
 let form = null;

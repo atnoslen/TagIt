@@ -31,9 +31,30 @@ export class TagItPackCache {
         return packs;
     }
 
+    static async _getPacks(indexes) {
+        const packs = [];
+    
+        await Promise.all(indexes.flatMap(a => a.index));
+    
+        for (const pack of indexes) {
+            const index = await pack.index;
+    
+            packs.push({pack: pack.pack, name: pack.name, type: pack.type, items: index});
+        }
+    
+        return packs;
+    }
+
     static async refresh() {
         const promises = TagItPackCache._getPackIndexPromises();
 
         TagItPackCache.index = await TagItPackCache._getPacksWithTagsIndex(promises);
+    }
+
+    static async getFullIndex() {
+        const promises = TagItPackCache._getPackIndexPromises();
+        const indexes = await TagItPackCache._getPacks(promises);
+
+        return indexes;
     }
 }

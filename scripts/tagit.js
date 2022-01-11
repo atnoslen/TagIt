@@ -182,7 +182,7 @@ Hooks.once('ready', async () => {
     Settings.registerSettings();
 
     game.modules.get(mod).api = {
-        search: TagItSearch.getResults,
+        search: TagItSearch.search,
         packCache: TagItPackCache
     };
 });
