@@ -159,6 +159,83 @@ class TagIt extends FormApplication {
             openBtn.insertAfter(titleElement);
         }
     }
+
+    static async migrateFrom02() {
+        console.log(`TagIt!: Migrating from v0.2...`);
+
+        const promises = [];
+
+        for (const document of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        for (const document of game.scenes.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        for (const document of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        for (const document of game.items.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        const index = await TagItPackCache.refresh();
+
+        for (const pack of index.filter(a => a.items.some(b => b.flags.tagit.tags.some(c => typeof c === 'string')))) {
+            for (const index of pack.items) {
+                const document = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
+            
+                const tags = document.getFlag('tagit','tags');
+                for (let i = 0; i < tags.length; i++) {
+                    if (typeof tags[i] === 'string') {
+                        tags[i] = { tag: tags[i]};
+                    }
+                }
+
+                promises.push(document.setFlag('tagit','tags',tags));
+            }
+        }
+
+        await Promise.all(promises);
+
+        console.log(`TagIt!: Migrated ${promises.length} documents.`);
+
+        console.log(`TagIt!: Done migrating.`);
+    }
 }
 
 Hooks.on('renderJournalSheet', (app, html, data) => {
@@ -183,6 +260,9 @@ Hooks.once('ready', async () => {
 
     game.modules.get(mod).api = {
         search: TagItSearch.search,
+        search2: TagItSearch.searchv2,
         packCache: TagItPackCache
     };
+
+    await TagIt.migrateFrom02();
 });
