@@ -49,6 +49,8 @@ export class TagItPackCache {
         const promises = TagItPackCache._getPackIndexPromises();
 
         TagItPackCache.index = await TagItPackCache._getPacksWithTagsIndex(promises);
+
+        return TagItPackCache.index;
     }
 
     static async getFullIndex() {
