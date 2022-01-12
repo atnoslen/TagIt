@@ -381,6 +381,8 @@ export class TagItSearch extends FormApplication {
         
                 options = mergeObject(defaultOptions, options);
 
+
+
                 if (!(['all','any'].includes(options.type))) {
                     throw 'Invalid type.';
                 }
@@ -501,6 +503,190 @@ export class TagItSearch extends FormApplication {
             }
         });
         
+
+       return promise;
+    }
+
+    static getSearchTerms(terms) {
+        const rTag = /^(tag:)?((?<unquoted>\w([\w ']+\w)?)|((?<quote>["'])(?<quoted>[^\:]*?(?<!\\))\k<quote>))$/;
+        const rName = /^name:((?<unquoted>\w([\w ']+\w)?)|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>))$/;
+        const rNum = /^((?<unquoted>\w([\w']*\w)?):|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>):)(?<value>[\d]+)$/;
+        
+        const tags = [];
+        const names = [];
+        const nums = [];
+
+        let matched = false;
+        let match = null;
+
+        for (const term of terms) {
+            matched = false;
+
+            match = term.match(rTag);
+            if (match) {
+                if (match.groups.unquoted) {
+                    tags.push(match.groups.unquoted);
+                } else if (match.groups.quoted) {
+                    tags.push(match.groups.quoted);
+                }
+
+                matched = true;
+            }
+
+            match = term.match(rName);
+            if (match) {
+                if (match.groups.unquoted) {
+                    names.push(match.groups.unquoted);
+                } else if (match.groups.quoted) {
+                    names.push(match.groups.quoted);
+                }
+
+                matched = true;
+            }
+
+            match = term.match(rNum);
+            if (match) {
+                if (match.groups.unquoted) {
+                    nums.push({tag: match.groups.unquoted, value: match.groups.value});
+                } else if (match.groups.quoted) {
+                    nums.push({tag: match.groups.quoted, value: match.groups.value});
+                }
+
+                matched = true;
+            }
+
+            if (!matched) {
+                throw `Invalid search term: ${term}`;
+            }
+        }
+
+        return { tags, names, nums };
+    }
+
+    /*
+     */
+    static async searchv2(terms, options) {
+        const promise = new Promise(async function(resolve, reject) {
+            try {
+                const { tags, names, nums } = TagItSearch.getSearchTerms(terms);
+
+                const defaultOptions = {
+                    filter: {
+                        entity: ['JournalEntry', 'Scene', 'Actor', 'Item', 'Token', 'Pack']
+                    },
+                    type: 'all',
+                    limit: 50
+                };
+        
+                options = mergeObject(defaultOptions, options);
+
+
+
+                if (!(['all','any'].includes(options.type))) {
+                    throw 'Invalid type.';
+                }
+
+                if (typeof options.limit !== 'number' || options.limit < 0) {
+                    throw 'Invalid limit'
+                }
+
+                let result = [];
+
+                if (options.filter.entity.includes('JournalEntry')) {
+                    result = result.concat(
+                        game.journal.filter(a =>
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+
+                if (options.filter.entity.includes('Scene')) {
+                    result = result.concat(
+                        game.scenes.filter(a => 
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+
+                if (options.filter.entity.includes('Actor')) {
+                    result = result.concat(
+                        game.actors.filter(a => 
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+                
+                if (options.filter.entity.includes('Item')) {
+                    result = result.concat(
+                        game.items.filter(a => 
+                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                        )
+                    );
+                }
+
+                if (options.filter.entity.includes('Token')) {
+                    result = result.concat(
+                        canvas.tokens.getDocuments().filter(a => 
+                            tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || a.actor?.data?.flags?.tagit?.tags?.includes(b)) ||
+                            names.some(b => a.name.toLowerCase().includes(b))
+                        )
+                        .map(a => {
+                            return {
+                                entity: a,
+                                tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                                    .filter(item => item !== undefined)
+                                    .sort()
+                            };
+                        })
+                        .filter(a => 
+                            ((options.type === 'all') && (tags.every(b => a.tags.includes(b)) && names.every(b => a.entity.name.toLowerCase().includes(b)))) || 
+                            ((options.type === 'any') && (tags.some(b => a.tags.includes(b)) || names.some(b => a.entity.name.toLowerCase().includes(b))))
+                        )
+                        .map(a => a.entity)
+                    )
+                }
+
+                if (options.filter.entity.includes('Pack')) {
+
+                    const index = await TagItPackCache.getFullIndex();
+
+                    let packtags = [];
+                    //for (const pack of TagItPackCache.index) {
+                    for (const pack of index) {
+                        packtags.push({
+                            pack: `${pack.pack}.${pack.name}`,
+                            id: pack.items.filter(a => options.filter.entity.includes(pack.type) &&
+                                    ((options.type === 'all') && (tags.every(b => a.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b)))) ||
+                                    ((options.type === 'any') && (tags.some(b => a.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+                                )
+                                .map(a => a._id)
+                        });
+                    }
+
+                    let packentities = [];
+
+                    for (const index of packtags) {
+                        packentities.push(game.packs.get(index.pack).getDocuments({_id: { $in: index.id }}))
+                    }
+
+                    packentities = (await Promise.all(packentities)).flat();
+
+                    result = result.concat(packentities);
+                }
+
+                if (options.limit > 0) {
+                    result.splice(0, result.length - options.limit);
+                }
+
+                resolve(result);
+            } catch (e) {
+                reject(e);
+            }
+        });
 
        return promise;
     }
