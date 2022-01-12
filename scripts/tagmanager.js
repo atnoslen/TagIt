@@ -6,38 +6,44 @@ export class TagItTagManager {
         let tags = [];
     
         const journaltags = game.journal.filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        .map(e => {
-            return e.data.flags.tagit.tags;
+        .map(a => {
+            return a.data.flags.tagit.tags;
         })
-        .flat();
+        .flat()
+        .map(a => a.tag);
 
         const scenetags = game.scenes.filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        .map(e => {
-            return e.data.flags.tagit.tags;
+        .map(a => {
+            return a.data.flags.tagit.tags;
         })
-        .flat();
+        .flat()
+        .map(a => a.tag);
     
         const actortags = game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        .map(e => {
-            return e.data.flags.tagit.tags;
+        .map(a => {
+            return a.data.flags.tagit.tags;
         })
-        .flat();
+        .flat()
+        .map(a => a.tag);
     
         const itemtags = game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        .map(e => {
-            return e.data.flags.tagit.tags;
+        .map(a => {
+            return a.data.flags.tagit.tags;
         })
-        .flat();
+        .flat()
+        .map(a => a.tag);
     
         const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        .map(e => {
-            return e.data.flags.tagit.tags;
+        .map(a => {
+            return a.data.flags.tagit.tags;
         })
-        .flat();
+        .flat()
+        .map(a => a.tag);
     
         const packtags = TagItPackCache.index.flatMap(a => a.items)
         .map(a => a.flags.tagit.tags)
-        .flat();
+        .flat()
+        .map(a => a.tag);
     
         return [...new Set([].concat(journaltags, scenetags, actortags, itemtags, tokentags, packtags))].sort();
     }

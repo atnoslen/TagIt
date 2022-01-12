@@ -1,7 +1,6 @@
 import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
-import { TagItInputManager } from "./inputmanager.js";
 import { TagItInput } from "./input.js";
 
 export class TagItSearch extends FormApplication {

@@ -2,7 +2,6 @@ import { Settings, mod } from "./settings.js";
 import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
-import { TagItInputManager } from "./inputmanager.js"
 import { TagItInput } from "./input.js";
 
 class TagIt extends FormApplication {
@@ -62,12 +61,7 @@ class TagIt extends FormApplication {
     activateListeners(html) {
         const _this = this;
         super.activateListeners(html);
-
         
-
-        //TagItInputManager.calculateAutocompleteList(_this);
-        
-
         if (_this.readOnlyTags) {
             // Render read only version for tags.
             _this.readOnlyTags.forEach(tag => {
@@ -88,35 +82,26 @@ class TagIt extends FormApplication {
 
         TagItInput.calculateAutocompleteList(_this);
         TagItInput.registerListeners(_this);
-    
-        // $(`#taginput${_this.appId}`, html).on('input', function (event) {
-        //     if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
-        //         // Selected a tag from dropdown
-        //         TagItInput.addtag(this.value, _this);
-        //     }
-        // });
-    
-        // $(`#taginput${_this.appId}`, html).on('keypress', function(event) {
-        //     if (event.keyCode === 13) {
-        //         event.preventDefault();
-    
-        //         TagItInput.addtag($(`#taginput${_this.appId}`, html).val(), _this);
-        //     }
-        // });
-    
-        // $(`#taginput${_this.appId}`, html).focus();
     }
     
     async _updateObject(event, formData) {
         if (game.user.isGM) {
             const collection = $('div.tag.collection', this.element);
 
-            const items = $('span.tag', collection)
+            const items = $('span.tagit.tag', collection)
             .map(function() {
                 if ($('i.fa-times-circle', this).length > 0) {
-                    return $(this).text();
+                    return TagItInput.textToTag($(this).text());
                 }
-            }).get().sort();
+            }).get().sort((a,b) => {
+                const comp = a.tag.localeCompare(b.tag);
+                if (comp === 0) {
+                    // Sort values
+                    return a.value - b.value;
+                } else {
+                    return comp;
+                }
+            });
 
             let entity = this.entity;
 
