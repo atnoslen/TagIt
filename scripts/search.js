@@ -689,6 +689,682 @@ export class TagItSearch extends FormApplication {
 
        return promise;
     }
+
+    static tokenizer(str) {
+        str = str.trim();
+        let index = 0;
+        let length = str.length;
+        const tokens = [];
+
+        let sQuote = false;
+        let dQuote = false;
+        let parenDepth = 0;
+
+        let tokenStart = 0;
+        let tokenClose = 0;
+
+        tokenClose = [];
+
+        while (index < length) {
+            switch (str[index]) {
+                case "\\":
+                    // Encountered an escape
+                    // Look ahead
+                    index++;
+
+                    switch (str[index]) {
+                        case '"':
+                        case "'":
+                        case '(':
+                        case ')':
+                            // Escaping values
+                            index++;
+                            break;
+                    }
+                    continue;
+                case "'":
+                    if (parenDepth > 0) {
+                        // In a parenthetical
+                        break;
+                    } else if (dQuote) {
+                        // Encountered singlequote within doublequote
+                        break;
+                    } else if (sQuote) {
+                        // Encountered singlequote after finding one earlier
+                        sQuote = false;
+
+                        // push token
+                        // start = 1
+                        // end = index - 1
+
+                        tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
+                    } else {
+                        sQuote = true;
+                    }
+
+                    break;
+                case '"':
+                    if (parenDepth > 0) {
+                        // In a parenthetical
+                        break;
+                    } else if (sQuote) {
+                        // Encountered doublequote within singlequote
+                        break;
+                    } else if (dQuote) {
+                        //In a doublequote
+                        dQuote = false;
+
+                        // push token
+                        // start = 1
+                        // end = index - 1
+
+                        tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
+                    } else {
+                        dQuote = true;
+                    }
+
+                    break;
+                case '(':
+                    if (sQuote || dQuote) {
+                        // In the middle of a quote, do nothing
+                        break;
+                    }
+                    parenDepth++;
+
+                    break;
+                case ')':
+                    if (sQuote || dQuote) {
+                        // In the middle of a quote, do nothing
+                        break;
+                    }
+                    parenDepth--;
+
+                    if (parenDepth == 0) {
+                        // Found end of parenthetical
+                        tokenClose.push({start: 0, end: index+1, offset: 0, recurse: true});
+                    }
+                    
+                    break;
+                case '<':
+                case '>':
+                    // numerical operators
+
+                    if (sQuote || dQuote || parenDepth > 0) {
+                        break;
+                    }
+
+                    // Look ahead to see if '<=' or '>='
+                    if (str[index+1] == '=') {
+                        // it is
+                        if (index > 0) {
+                            // push previous token
+                            // start = 0
+                            // current - 1
+                            tokenClose.push({start: 0, end: 2, offset: 2, recurse: false})
+                            tokenClose.push({start:0, end:index, offset: -1, recurse: false});
+                        } else {
+                            // At start of string due to quote
+                            tokenClose.push({start: 0, end: 2, offset: 1, recurse: false})
+                        }
+                    } else {
+                        if (index > 0) {
+                            // push previous token
+                            // start = 0
+                            // current - 1
+                            tokenClose.push({start: 0, end: 1, offset: 1, recurse: false})
+                            tokenClose.push({start:0, end:index, offset: -1, recurse: false});
+                        } else {
+                            // At start of string due to quote
+                            tokenClose.push({start: 0, end: 1, offset: 0, recurse: false})
+                        }
+                    }
+
+
+                    break;
+                case '=':
+                case ':':
+                    // Encountered a : or = operator
+                    if (sQuote || dQuote || parenDepth > 0) {
+                        break;
+                    }
+
+                    if (index + 1 == length) {
+                        // Encountered ':' at end of string
+                        throw "Invalid input - Cannot end with ':'"
+                    } else if (index == 0 && tokens.length == 0) {
+                        // Start of token or string is ':'
+                        throw "Invalid input - Cannot start with ':'"
+                    }
+
+                    
+
+                    if (index > 0) {
+                        // push previous token
+                        // start = 0
+                        // current - 1
+                        tokenClose.push({start: 0, end: 1, offset: 1, recurse: false})
+                        tokenClose.push({start:0, end:index, offset: -1, recurse: false});
+                    } else {
+                        // At start of string
+                        tokenClose.push({start: 0, end: 1, offset: 0, recurse: false})
+                    }
+                    // push :
+                    // start = index - 1
+                    // end = index;
+
+                    break;
+                case ' ':
+                    // Encountered white space
+                    if (sQuote || dQuote || parenDepth > 0) {
+                        break;
+                    }
+                    // push token
+                    // start = 0
+                    // end = index - 1
+                    tokenClose.push({start:0, end:index, offset: 0, recurse: false});
+
+                    break;
+                default:
+                    break;
+            }
+
+            index++;
+            if (index > 0 && index == length && tokenClose.length == 0) {
+                // Final token push
+                // start = 0
+                // end = index
+
+                tokenClose.push({start:0, end:index, offset: 0, recurse: false});
+            }
+
+            while(tokenClose.length > 0) {
+                const close = tokenClose.pop();
+                //tokens.push(str.substring(close.start, close.end));
+                const token = str.substring(close.start, close.end);
+                if (close.recurse) {
+                    tokens.push(TagItSearch.tokenizer(token.substring(1, token.length -1)));
+                } else {
+                    tokens.push(token)
+                }
+                //tokens.push(str.substring(close.start, close.end));
+                str = str.substring(index + close.offset).trim();
+                index = 0;
+                length = str.length;
+            }
+        }
+
+        if (sQuote) {
+            throw `Invalid input - Unclosed "'"`;
+        } else if (dQuote) {
+            throw `Invalid input - Unclosed '"'`;
+        } else if (parenDepth < 0) {
+            throw `Invalid input - Too many ')'`;
+        } else if (parenDepth > 0) {
+            throw `Invalid input - Not enough ')'`;
+        }
+
+        return tokens;
+    }
+
+    static async parser(items) {
+        let expressions = [];
+
+        let merge = null;
+
+        const operators = [':','=','<','<=','>','>='];
+        const boolOperators = ['&&','||'];
+
+        while (items.length) {
+            const item = items.shift();
+
+            let expression = null;
+
+            if (Array.isArray(item)) {
+                // Recurse
+                expressions.push(await TagItSearch.parser(item));
+            } else if (operators.includes(items[0])) {
+                // Next operand is an operator
+                let op = items.shift();
+                const value = items.shift();
+                switch (item) {
+                    case 'name':
+                        // Looking for a name
+
+                        expression = {
+                            op: "filter",
+                            document: function(collection) {
+                                return collection
+                                .filter(document => document.name.toLowerCase().includes(value.toLowerCase()))
+                                .map(document => {
+                                    return {
+                                        id: document.id,
+                                        name: document.name,
+                                        type: document.documentName,
+                                        tags: document.data.flags?.tagit?.tags,
+                                        document: document,
+                                        img: (document.documentName === "Scene") ? document.data.thumb : document.img
+                                    }
+                                });
+                            },
+                            pack: function(packIndex) {
+                                const packtags = [];
+                                for (const pack of packIndex) {
+                                    packtags.push(
+                                        pack.items
+                                        .filter(index => index.name.toLowerCase().includes(value.toLowerCase()))
+                                        .map(index => {
+                                            return {
+                                                id: index._id,
+                                                name: index.name,
+                                                type: pack.type,
+                                                tags: index.flags.tagit.tags,
+                                                pack: `${pack.pack}.${pack.name}`,
+                                                img: (pack.type === "Scene") ? b.thumb : b.img
+                                            }
+                                        })
+                                    );
+                                }
+        
+                                return packtags.flat();
+                            }
+                        };
+                        break;
+                    case 'document-type':
+                        // Filtering an entity
+                        expression =  {
+                            op: "doc-filter",
+                            collection: function(packIndex) {
+                                const documents = [];
+
+                                if (packIndex) {
+                                    documents.push(
+                                        packIndex.filter(a => a.type === value)
+                                        .flatMap(a=> a.items
+                                            .map(b => {
+                                                return {
+                                                    id: b._id,
+                                                    name: b.name,
+                                                    type: a.type,
+                                                    pack: `${a.pack}.${a.name}`,
+                                                    img: (a.type === "Scene") ? b.thumb : b.img
+                                                }
+                                            })
+                                        )
+                                    );
+                                }
+
+                                switch (value.toLowerCase()) {
+                                    case "journalentry":
+                                        documents.push(
+                                            game.journal
+                                            .map(document => {
+                                                return {
+                                                    id: document.id,
+                                                    name: document.name,
+                                                    type: document.documentName,
+                                                    tags: document.data.flags?.tagit?.tags,
+                                                    document: document,
+                                                    img: document.img
+                                                }
+                                            })
+                                        );
+
+                                        break;
+                                    case "scene":
+                                        documents.push(
+                                            game.scenes
+                                            .map(document => {
+                                                return {
+                                                    id: document.id,
+                                                    name: document.name,
+                                                    type: document.documentName,
+                                                    tags: document.data.flags?.tagit?.tags,
+                                                    document: document,
+                                                    img: document.data.thumb
+                                                }
+                                            })
+                                        );
+                                        
+                                        break;
+                                    case "actor":
+                                        documents.push(
+                                            game.actors
+                                            .map(document => {
+                                                return {
+                                                    id: document.id,
+                                                    name: document.name,
+                                                    type: document.documentName,
+                                                    tags: document.data.flags?.tagit?.tags,
+                                                    document: document,
+                                                    img: document.img
+                                                }
+                                            })
+                                        );
+                                        
+                                        break;
+                                    case "item":
+                                        documents.push(
+                                            game.items
+                                            .map(document => {
+                                                return {
+                                                    id: document.id,
+                                                    name: document.name,
+                                                    type: document.documentName,
+                                                    tags: document.data.flags?.tagit?.tags,
+                                                    document: document,
+                                                    img: document.img
+                                                }
+                                            })
+                                        );
+                                        
+                                        break;
+                                }
+
+                                return documents.flat();
+                            }
+                        }
+                        break;
+                    case 'tag':
+                        // Looking for a name
+
+                        expression = {
+                            op: "filter",
+                            document: function(collection) {
+                                return collection
+                                .filter(document => document.data.flags?.tagit?.tags?.some(tag => tag.tag === value))
+                                .map(document => {
+                                    return {
+                                        id: document.id,
+                                        name: document.name,
+                                        type: document.documentName,
+                                        tags: document.data.flags?.tagit?.tags,
+                                        document: document,
+                                        img: (document.documentName === "Scene") ? document.data.thumb : document.img
+                                    }
+                                });
+                            },
+                            pack: function(packIndex) {
+                                const packtags = [];
+                                for (const pack of packIndex) {
+                                    packtags.push(
+                                        pack.items
+                                        .filter(index => index.flags.tagit.tags.some(tag => tag.tag === value))
+                                        .map(index => {
+                                            return {
+                                                id: index._id,
+                                                name: index.name,
+                                                type: pack.type,
+                                                tags: index.flags.tagit.tags,
+                                                pack: `${pack.pack}.${pack.name}`,
+                                                img: (pack.type === "Scene") ? index.thumb : index.img
+                                            }
+                                        })
+                                    );
+                                }
+        
+                                return packtags.flat();
+                            }
+                        };
+                        break;
+                    default:
+                        // Tag with value
+
+                        let valueExpr = null;
+
+                        switch (op) {
+                            case ":":
+                            case "=":
+                                valueExpr = function (tag) { return tag.value == value; }
+                                break;
+                            case ">":
+                                valueExpr = function (tag) { return tag.value > value; }
+                                break;
+                            case ">=":
+                                valueExpr = function (tag) { return tag.value >= value; }
+                                break;
+                            case "<":
+                                valueExpr = function (tag) { return tag.value < value; }
+                                break;
+                            case "<=":
+                                valueExpr = function (tag) { return tag.value <= value; }
+                                break;
+                        }
+
+                        expression =  {
+                            op: "filter",
+                            document: function(collection) {
+                                return collection
+                                .filter(document => document.data.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag)))
+                                .map(document => {
+                                    return {
+                                        id: document.id,
+                                        name: document.name,
+                                        type: document.documentName,
+                                        tags: document.data.flags?.tagit?.tags,
+                                        document: document,
+                                        img: (document.documentName === "Scene") ? document.data.thumb : document.img
+                                    }
+                                });
+                            },
+                            pack: function(packIndex) {
+                                const packtags = [];
+                                for (const pack of packIndex) {
+                                    packtags.push(
+                                        pack.items
+                                        .filter(index => index.flags.tagit.tags.some(tag => tag.tag === item && valueExpr(tag)))
+                                        .map(index => {
+                                            return {
+                                                id: index._id,
+                                                name: index.name,
+                                                type: pack.type,
+                                                tags: index.flags.tagit.tags,
+                                                pack: `${pack.pack}.${pack.name}`,
+                                                img: (pack.type === "Scene") ? index.thumb : index.img
+                                            }
+                                        })
+                                    );
+                                }
+        
+                                return packtags.flat();
+                            }
+                        }
+
+                        break;
+                }
+            } else {
+                // No operator
+                expression = {
+                    op: "filter",
+                    document: function(collection) {
+                        return collection
+                        .filter(document => document.data.flags?.tagit?.tags?.some(tag => tag.tag === item))
+                        .map(document => {
+                            return {
+                                id: document.id,
+                                name: document.name,
+                                type: document.documentName,
+                                tags: document.data.flags?.tagit?.tags,
+                                document: document,
+                                img: (document.documentName === "Scene") ? document.data.thumb : document.img
+                            }
+                        });
+                    },
+                    pack: function(packIndex) {
+                        const packtags = [];
+                        for (const pack of packIndex) {
+                            packtags.push(
+                                pack.items
+                                .filter(index => index.flags.tagit.tags.some(tag => tag.tag === item))
+                                .map(index => {
+                                    return {
+                                        id: index._id,
+                                        name: index.name,
+                                        type: pack.type,
+                                        tags: index.flags.tagit.tags,
+                                        pack: `${pack.pack}.${pack.name}`,
+                                        img: (pack.type === "Scene") ? index.thumb : index.img
+                                    }
+                                })
+                            );
+                        }
+
+                        return packtags.flat();
+                    }
+                }
+            }
+
+            if (expression) {
+                // Have a filter expression
+
+                expressions.push(expression);
+                expression = null;
+
+                if (merge) {
+                    expressions.push(merge);
+                    merge = null;
+                }
+            }
+
+            if (items.length > 0 && boolOperators.includes(items[0])) {
+                // Next operand is a bool operator
+                switch (items.shift()) {
+                    case "&&":
+                        merge = {
+                            op: "merge",
+                            func: function (a, b) {
+                                return a.filter(A => b.some(B => A.id === B.id && A.name === B.name && A.type === B.type));
+                            }
+                        }
+                        break;
+                    case "||":
+                        merge = {
+                            op: "merge",
+                            func: function (a, b) {
+                                return [...a, ...b]
+                                .filter((A, pos, arr) =>
+                                  arr.findIndex(B => A.id === B.id && A.name === B.name && A.type === B.type) == pos
+                                );
+                            }
+                        }
+                        break;
+                }
+                
+            } else if (items.length > 0) {
+                // Next operator is not a bool operator
+                // Assume &&
+                merge = {
+                    op: "merge",
+                    func: function (a, b) {
+                        return a.filter(A => b.some(B => A.id === B.id));
+                    }
+                }
+            }
+
+        }
+
+        return expressions;
+    }
+
+    static exec(et, packIndex) {
+        let a = null;
+        let b = null;
+        let x = null;
+
+
+        while(et.length > 0) {
+            const expression = et.shift();
+
+            if (Array.isArray(expression)) {
+                // Parentheticals
+                x = TagItSearch.exec(expression);
+            } else {
+                switch (expression.op) {
+                    case 'filter':
+                        x = [].concat(
+                            expression.document(game.journal),
+                            expression.document(game.actors),
+                            expression.document(game.scenes),
+                            expression.document(game.items),
+                            expression.pack(packIndex)
+                        );
+    
+                        break;
+                    case 'doc-filter':
+                        x = expression.collection(packIndex);
+                        break;
+                    case 'merge':
+                        a = expression.func(a, b);
+                        break;
+                }
+            }
+
+            if (a) {
+                b = x;
+            } else {
+                a = x;
+            }
+        }
+        
+        return a;
+    }
+
+    static async searchByString(item, options) {
+        const promise = new Promise(async function(resolve, reject) {
+            try {
+                const promises = TagItPackCache._getPackIndexPromises();
+
+                const tokens = TagItSearch.tokenizer(item);
+                const instructions = await TagItSearch.parser(tokens);
+
+                const packIndex = await TagItPackCache._getPacksWithTagsIndex(promises);
+                const results = TagItSearch.exec(instructions, packIndex);
+
+                resolve(results);
+            } catch (e) {
+                reject(e);
+            }
+
+        });
+
+        return promise;
+    }
+}
+
+class SearchItem {
+    constructor(itemString) {
+        this._item = SearchItem.toDict(itemString);
+    }
+    
+    get dict() { return this._item; }
+
+    static toDict(searchString) {
+        const rTag = /^(tag:)?((?<unquoted>\w([\w '\!\?\.]+[\w\!\?\.])?)|((?<quote>["'])(?<quoted>[^\:]*?(?<!\\))\k<quote>))$/;
+        const rName = /^name:((?<unquoted>\w([\w '\!\?\.]+[\w\!\?\.])?)|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>))$/;
+        const rNum = /^((?<unquoted>\w([\w'\!\?\.]*[\w\!\?\.])?):|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>)):(?<value>[\d]+)$/;
+
+        let match = searchString.match(rTag);
+        if (match) {
+            return (match.groups.unquoted) ?
+            {tag: match.groups.unquoted} :
+            {tag: match.groups.quoted};
+        }
+
+        match = searchString.match(rName);
+        if (match) {
+            return (match.groups.unquoted) ?
+            {name: match.groups.unquoted} :
+            {name: match.groups.quoted};
+        }
+
+        match = searchString.match(rNum);
+        if (match) {
+            return (match.groups.unquoted) ?
+            {tag: match.groups.unquoted, value: match.groups.value} :
+            {tag: match.groups.quoted, value: match.groups.value};
+        }
+
+        throw `Invalid search term: ${searchString}`;
+    }
 }
 
 let form = null;

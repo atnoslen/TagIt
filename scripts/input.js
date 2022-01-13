@@ -67,8 +67,9 @@ export class TagItInput {
 
     static textToTag(text) {
         const num = text.split(':');
+        if (num.length > 2) { throw "Invalid tag." };
 
-        return (num.length > 1) ? { tag: num[0], value: num[1] } : { tag: num[0] };
+        return (num.length == 2) ? { tag: num[0], value: num[1] } : { tag: num[0] };
     }
 
     static textToTagLowerCase(text) {

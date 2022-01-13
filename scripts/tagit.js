@@ -244,8 +244,7 @@ Hooks.once('ready', async () => {
     Settings.registerSettings();
 
     game.modules.get(mod).api = {
-        search: TagItSearch.search,
-        search2: TagItSearch.searchv2,
+        search: TagItSearch.searchByString,
         packCache: TagItPackCache
     };
 
