@@ -606,7 +606,7 @@ export class TagItSearch extends FormApplication {
                                 if (collection) {
                                     documents.push(
                                         collection
-                                        .filter(document => document.data.flags?.tagit?.tags?.length > 0)
+                                        //.filter(document => document.data.flags?.tagit?.tags?.length > 0)
                                         .map(document => documentMap(document))
                                     );
                                 }
