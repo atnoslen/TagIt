@@ -195,19 +195,30 @@ export class TagItSearch extends FormApplication {
 
             const collectionElement = $('div.tag.collection', item);
 
-            for (const tag of a.tags) {
-                $(collectionElement)
-                .append(
-                    $('<span>')
-                    .addClass('tagit')
-                    .addClass('tag')
-                    .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`)
-                );
+            if (a.tags) {
+                for (const tag of a.tags) {
+                    $(collectionElement)
+                    .append(
+                        $('<span>')
+                        .addClass('tagit')
+                        .addClass('tag')
+                        .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`)
+                    );
+                }
             }
 
             $('.search.directory-list', _this.element).append(item);
         });
     }
+
+    static reservedTokens = [
+        'n',
+        'name',
+        't',
+        'type',
+        'document-type',
+        'tag'
+    ]
 
     static tokenizer(str) {
         str = str.trim();
@@ -255,7 +266,6 @@ export class TagItSearch extends FormApplication {
                         // push token
                         // start = 1
                         // end = index - 1
-
                         tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
                     } else {
                         sQuote = true;
@@ -425,7 +435,7 @@ export class TagItSearch extends FormApplication {
         return tokens;
     }
 
-    static async parser(items) {
+    static async parser(tokens) {
         let expressions = [];
 
         let merge = null;
@@ -433,61 +443,111 @@ export class TagItSearch extends FormApplication {
         const operators = [':','=','<','<=','>','>='];
         const boolOperators = ['&&','||'];
 
-        while (items.length) {
-            const item = items.shift();
+        const documentMap = function(document) {
+            return {
+                id: document.id,
+                name: document.name,
+                type: document.documentName,
+                tags: document.data.flags?.tagit?.tags,
+                document: document,
+                img: (document.documentName === "Scene") ? document.data.thumb : document.img
+            }
+        }
+
+        const compendiumMap = function(pack, index) {
+            return {
+                id: index._id,
+                name: index.name,
+                type: pack.type,
+                tags: index.flags.tagit.tags,
+                pack: `${pack.pack}.${pack.name}`,
+                img: (pack.type === "Scene") ? index.thumb : index.img
+            }
+        }
+
+        const tokenMap = function(document) {
+            return {
+                id: document.id,
+                name: document.name,
+                type: document.documentName,
+                tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                .filter(item => item !== undefined)
+                .sort(),
+                document: document,
+                img: a.data.img
+            }
+        }
+
+        const maps = function(type) {
+            switch (type.toLowerCase()) {
+                case "journalentry":
+                case "scene":
+                case "actor":
+                case "item":
+                    return function (document) {
+                        return {
+                            id: document.id,
+                            name: document.name,
+                            type: document.documentName,
+                            tags: document.data.flags?.tagit?.tags,
+                            document: document,
+                            img: (document.documentName === "Scene") ? document.data.thumb : document.img
+                        }
+                    }
+                case "token":
+                    return function (document) {
+                        return {
+                            id: document.id,
+                            name: document.name,
+                            type: document.documentName,
+                            tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                            .filter(item => item !== undefined)
+                            .sort(),
+                            document: document,
+                            img: a.data.img
+                        }
+                    }
+                case "pack":
+                    return function (pack, index) {
+                        return {
+                            id: index._id,
+                            name: index.name,
+                            type: pack.type,
+                            tags: index.flags.tagit.tags,
+                            pack: `${pack.pack}.${pack.name}`,
+                            img: (pack.type === "Scene") ? index.thumb : index.img
+                        }
+                    }
+            }
+        }
+
+        while (tokens.length) {
+            const item = tokens.shift();
 
             let expression = null;
+            let filter = null;
 
             if (Array.isArray(item)) {
                 // Recurse
                 expressions.push(await TagItSearch.parser(item));
-            } else if (operators.includes(items[0])) {
-                // Next operand is an operator
-                let op = items.shift();
-                const value = items.shift();
+            } else if (operators.includes(tokens[0])) {
+                // Next token is an operator
+                let op = tokens.shift();
+                const value = tokens.shift();
                 switch (item) {
+                    case 'n':
                     case 'name':
                         // Looking for a name
+                        filter = function (document) {
+                            return document.name.toLowerCase().includes(value.toLowerCase())
+                        }
 
                         expression = {
-                            op: "filter",
-                            document: function(collection) {
-                                return collection
-                                .filter(document => document.name.toLowerCase().includes(value.toLowerCase()))
-                                .map(document => {
-                                    return {
-                                        id: document.id,
-                                        name: document.name,
-                                        type: document.documentName,
-                                        tags: document.data.flags?.tagit?.tags,
-                                        document: document,
-                                        img: (document.documentName === "Scene") ? document.data.thumb : document.img
-                                    }
-                                });
-                            },
-                            pack: function(packIndex) {
-                                const packtags = [];
-                                for (const pack of packIndex) {
-                                    packtags.push(
-                                        pack.items
-                                        .filter(index => index.name.toLowerCase().includes(value.toLowerCase()))
-                                        .map(index => {
-                                            return {
-                                                id: index._id,
-                                                name: index.name,
-                                                type: pack.type,
-                                                tags: index.flags.tagit.tags,
-                                                pack: `${pack.pack}.${pack.name}`,
-                                                img: (pack.type === "Scene") ? b.thumb : b.img
-                                            }
-                                        })
-                                    );
-                                }
-        
-                                return packtags.flat();
-                            }
+                            op: "filter"
                         };
                         break;
+                    case 't':
+                    case 'type':
                     case 'document-type':
                         // Filtering an entity
                         expression =  {
@@ -495,27 +555,40 @@ export class TagItSearch extends FormApplication {
                             collection: function(packIndex) {
                                 const documents = [];
 
+                                let doc = value.toLowerCase();
+
+                                // Provide some shortcuts
+                                switch(doc) {
+                                    case "journal":
+                                    case "j":
+                                        doc = "journalentry";
+                                        break;
+                                    case "a":
+                                        doc = "actor";
+                                        break;
+                                    case "i":
+                                        doc = "item";
+                                        break;
+                                    case "s":
+                                        doc = "scene";
+                                        break;
+                                    case "t":
+                                        doc = "token";
+                                        break;
+                                }
+
                                 if (packIndex) {
                                     documents.push(
-                                        packIndex.filter(a => a.type.toLowerCase() === value.toLowerCase())
-                                        .flatMap(a=> a.items
-                                            .map(b => {
-                                                return {
-                                                    id: b._id,
-                                                    name: b.name,
-                                                    type: a.type,
-                                                    tags: b.flags.tagit.tags,
-                                                    pack: `${a.pack}.${a.name}`,
-                                                    img: (a.type === "Scene") ? b.thumb : b.img
-                                                }
-                                            })
+                                        packIndex.filter(a => a.type.toLowerCase() === doc.toLowerCase())
+                                        .flatMap(pack => pack.items
+                                            .map(index => compendiumMap(pack, index))
                                         )
                                     );
                                 }
 
                                 let collection = null;
 
-                                switch (value.toLowerCase()) {
+                                switch (doc) {
                                     case "journalentry":
                                         collection = game.journal;
                                         break;
@@ -534,16 +607,7 @@ export class TagItSearch extends FormApplication {
                                     documents.push(
                                         collection
                                         .filter(document => document.data.flags?.tagit?.tags?.length > 0)
-                                        .map(document => {
-                                            return {
-                                                id: document.id,
-                                                name: document.name,
-                                                type: document.documentName,
-                                                tags: document.data.flags.tagit.tags,
-                                                document: document,
-                                                img: (value.toLowerCase() === "scene") ? document.thumb : document.img
-                                            }
-                                        })
+                                        .map(document => documentMap(document))
                                     );
                                 }
 
@@ -552,45 +616,14 @@ export class TagItSearch extends FormApplication {
                         }
                         break;
                     case 'tag':
-                        // Looking for a name
+                        // Looking for a tag
+
+                        filter = function(document) {
+                            return document.flags?.tagit?.tags?.some(tag => tag.tag === value);
+                        }
 
                         expression = {
-                            op: "filter",
-                            document: function(collection) {
-                                return collection
-                                .filter(document => document.data.flags?.tagit?.tags?.some(tag => tag.tag === value))
-                                .map(document => {
-                                    return {
-                                        id: document.id,
-                                        name: document.name,
-                                        type: document.documentName,
-                                        tags: document.data.flags?.tagit?.tags,
-                                        document: document,
-                                        img: (document.documentName === "Scene") ? document.data.thumb : document.img
-                                    }
-                                });
-                            },
-                            pack: function(packIndex) {
-                                const packtags = [];
-                                for (const pack of packIndex) {
-                                    packtags.push(
-                                        pack.items
-                                        .filter(index => index.flags.tagit.tags.some(tag => tag.tag === value))
-                                        .map(index => {
-                                            return {
-                                                id: index._id,
-                                                name: index.name,
-                                                type: pack.type,
-                                                tags: index.flags.tagit.tags,
-                                                pack: `${pack.pack}.${pack.name}`,
-                                                img: (pack.type === "Scene") ? index.thumb : index.img
-                                            }
-                                        })
-                                    );
-                                }
-        
-                                return packtags.flat();
-                            }
+                            op: "filter"
                         };
                         break;
                     default:
@@ -617,86 +650,45 @@ export class TagItSearch extends FormApplication {
                                 break;
                         }
 
+                        filter = function (document) {
+                            return document.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag))
+                        }
+
                         expression =  {
-                            op: "filter",
-                            document: function(collection) {
-                                return collection
-                                .filter(document => document.data.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag)))
-                                .map(document => {
-                                    return {
-                                        id: document.id,
-                                        name: document.name,
-                                        type: document.documentName,
-                                        tags: document.data.flags?.tagit?.tags,
-                                        document: document,
-                                        img: (document.documentName === "Scene") ? document.data.thumb : document.img
-                                    }
-                                });
-                            },
-                            pack: function(packIndex) {
-                                const packtags = [];
-                                for (const pack of packIndex) {
-                                    packtags.push(
-                                        pack.items
-                                        .filter(index => index.flags.tagit.tags.some(tag => tag.tag === item && valueExpr(tag)))
-                                        .map(index => {
-                                            return {
-                                                id: index._id,
-                                                name: index.name,
-                                                type: pack.type,
-                                                tags: index.flags.tagit.tags,
-                                                pack: `${pack.pack}.${pack.name}`,
-                                                img: (pack.type === "Scene") ? index.thumb : index.img
-                                            }
-                                        })
-                                    );
-                                }
-        
-                                return packtags.flat();
-                            }
+                            op: "filter"
                         }
 
                         break;
                 }
             } else {
                 // No operator
-                expression = {
-                    op: "filter",
-                    document: function(collection) {
-                        return collection
-                        .filter(document => document.data.flags?.tagit?.tags?.some(tag => tag.tag === item))
-                        .map(document => {
-                            return {
-                                id: document.id,
-                                name: document.name,
-                                type: document.documentName,
-                                tags: document.data.flags?.tagit?.tags,
-                                document: document,
-                                img: (document.documentName === "Scene") ? document.data.thumb : document.img
-                            }
-                        });
-                    },
-                    pack: function(packIndex) {
-                        const packtags = [];
-                        for (const pack of packIndex) {
-                            packtags.push(
-                                pack.items
-                                .filter(index => index.flags.tagit.tags.some(tag => tag.tag === item))
-                                .map(index => {
-                                    return {
-                                        id: index._id,
-                                        name: index.name,
-                                        type: pack.type,
-                                        tags: index.flags.tagit.tags,
-                                        pack: `${pack.pack}.${pack.name}`,
-                                        img: (pack.type === "Scene") ? index.thumb : index.img
-                                    }
-                                })
-                            );
-                        }
+                filter = function(document) {
+                    return document.flags?.tagit?.tags?.some(tag => tag.tag === item);
+                }
 
-                        return packtags.flat();
+                expression = {
+                    op: "filter"
+                }
+            }
+
+            if (expression && filter) {
+                expression.document = function(collection) {
+                    return collection
+                    .filter(document => filter(document.data))
+                    .map(document => documentMap(document));
+                };
+
+                expression.pack = function (compendiums) {
+                    const indexes = [];
+                    for (const compendium of compendiums) {
+                        indexes.push(
+                            compendium.items
+                            .filter(index => filter(index))
+                            .map(index => compendiumMap(compendium, index))
+                        );
                     }
+
+                    return indexes.flat();
                 }
             }
 
@@ -712,9 +704,9 @@ export class TagItSearch extends FormApplication {
                 }
             }
 
-            if (items.length > 0 && boolOperators.includes(items[0])) {
+            if (tokens.length > 0 && boolOperators.includes(tokens[0])) {
                 // Next operand is a bool operator
-                switch (items.shift()) {
+                switch (tokens.shift()) {
                     case "&&":
                         merge = {
                             op: "merge",
@@ -736,7 +728,7 @@ export class TagItSearch extends FormApplication {
                         break;
                 }
                 
-            } else if (items.length > 0) {
+            } else if (tokens.length > 0) {
                 // Next operator is not a bool operator
                 // Assume &&
                 merge = {
