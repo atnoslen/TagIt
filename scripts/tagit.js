@@ -215,6 +215,20 @@ class TagIt extends FormApplication {
             }
         }
 
+        for (const scene of game.scenes.filter(a => a.tokens.size > 0)) {
+            for (const document of scene.tokens.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+                const tags = document.getFlag('tagit','tags');
+
+                for (let i = 0; i < tags.length; i++) {
+                    if (typeof tags[i] === 'string') {
+                        tags[i] = { tag: tags[i]};
+                    }
+                }
+
+                promises.push(document.setFlag('tagit', 'tags', tags));
+            }
+        }
+
         await Promise.all(promises);
 
         if (promises.length > 0) {
