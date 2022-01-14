@@ -1,7 +1,6 @@
 import { Settings, mod } from './settings.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
-import { TagItInputManager } from "./inputmanager.js"
 import { EditTag } from "./edittag.js"
 
 export class SettingsForm extends FormApplication {
@@ -37,7 +36,6 @@ export class SettingsForm extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        await TagItPackCache.refresh();
         this.tags = await TagItTagManager.getUsedTags();
 
         data.tags = this.tags;
@@ -57,7 +55,6 @@ export class SettingsForm extends FormApplication {
      */
     async loadTags() {
         const _this = this;
-        await TagItPackCache.refresh();
         _this.tags = await TagItTagManager.getUsedTags();
         
         const text = $(`#taginput${_this.appId}`, _this.element)

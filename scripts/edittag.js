@@ -94,28 +94,25 @@ export class EditTag extends FormApplication {
      */
     async modifyTags(oldTag, newTag) {
         const promises = [];
-        const packCachePromise = TagItPackCache.refresh();
 
-        for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of game.actors.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of game.items.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.items.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        await packCachePromise;
-
-        for (const pack of TagItPackCache.index) {
-            for (const index of pack.items.filter(a => a.flags.tagit.tags.includes(oldTag))) {
+        for (const pack of TagItPackCache.Index) {
+            for (const index of pack.items.filter(a => a.flags.tagit.tags.some(a => a.tag === oldTag))) {
                 const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
                 
                 promises.push(this.modifyTag(entity, oldTag, newTag));
@@ -123,6 +120,7 @@ export class EditTag extends FormApplication {
         }
 
         await Promise.all(promises);
+        await TagItPackCache.init();
     }
 
     /**
@@ -137,9 +135,11 @@ export class EditTag extends FormApplication {
         let tags = entity.getFlag(mod, 'tags');
 
         if (newTag) {
-            tags.splice(tags.indexOf(oldTag), 1, newTag);
+            for (const tag of tags.filter(a => a.tag === oldTag)) {
+                tag.tag = newTag;
+            }
         } else {
-            tags = tags.filter(a => a !== oldTag);
+            tags = tags.filter(a => a.tag !== oldTag);
         }
         
 
