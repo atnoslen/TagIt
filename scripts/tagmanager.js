@@ -56,6 +56,10 @@ export class TagItTagManager {
             promises.push(entity.unsetFlag(mod, 'tags'));
         }
 
+        for (const entity of game.scenes.filter(a => a.data.flags?.tagit)) {
+            promises.push(entity.unsetFlag(mod, 'tags'));
+        }
+
         for (const entity of game.actors.filter(a => a.data.flags?.tagit)) {
             promises.push(entity.unsetFlag(mod, 'tags'));
         }
