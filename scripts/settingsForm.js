@@ -36,7 +36,7 @@ export class SettingsForm extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        await TagItPackCache.refresh();
+        //await TagItPackCache.refresh();
         this.tags = await TagItTagManager.getUsedTags();
 
         data.tags = this.tags;
@@ -56,7 +56,7 @@ export class SettingsForm extends FormApplication {
      */
     async loadTags() {
         const _this = this;
-        await TagItPackCache.refresh();
+        //await TagItPackCache.refresh();
         _this.tags = await TagItTagManager.getUsedTags();
         
         const text = $(`#taginput${_this.appId}`, _this.element)

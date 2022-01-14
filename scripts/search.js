@@ -27,7 +27,7 @@ export class TagItSearch extends FormApplication {
         const _this = this;
         const data = super.getData();
 
-        await TagItPackCache.refresh();
+        //await TagItPackCache.refresh();
         _this.tagcache = await TagItTagManager.getUsedTags();
 
         data.tagcache = _this.tagcache;
@@ -64,7 +64,7 @@ export class TagItSearch extends FormApplication {
                 .addClass(['fas', 'fa-redo', 'center'])
             )
             .on("click", async function() {
-                await TagItPackCache.refresh();
+                //await TagItPackCache.refresh();
                 _this.tagcache = await TagItTagManager.getUsedTags();
 
                 _this._renderResults();
@@ -344,7 +344,7 @@ export class TagItSearch extends FormApplication {
         if (entities.includes('Pack')) {
 
             let packtags = [];
-            for (const pack of TagItPackCache.index) {
+            for (const pack of TagItPackCache.Index) {
                 packtags.push( pack.items.filter(a => entities.includes(pack.type) && tags.every(b => a.flags.tagit.tags.includes(b)))
                 .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: ((pack.type === "Scene") ? a.thumb : a.img), tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
             }
@@ -367,328 +367,328 @@ export class TagItSearch extends FormApplication {
         return result;
     }
 
-    static async search(items, options) {
-        const promise = new Promise(async function(resolve, reject) {
-            try {
-                const defaultOptions = {
-                    filter: {
-                        entity: ['JournalEntry', 'Scene', 'Actor', 'Item', 'Token', 'Pack']
-                    },
-                    type: 'all',
-                    limit: 50
-                };
+    // static async search(items, options) {
+    //     const promise = new Promise(async function(resolve, reject) {
+    //         try {
+    //             const defaultOptions = {
+    //                 filter: {
+    //                     entity: ['JournalEntry', 'Scene', 'Actor', 'Item', 'Token', 'Pack']
+    //                 },
+    //                 type: 'all',
+    //                 limit: 50
+    //             };
         
-                options = mergeObject(defaultOptions, options);
+    //             options = mergeObject(defaultOptions, options);
 
 
 
-                if (!(['all','any'].includes(options.type))) {
-                    throw 'Invalid type.';
-                }
+    //             if (!(['all','any'].includes(options.type))) {
+    //                 throw 'Invalid type.';
+    //             }
 
-                if (typeof options.limit !== 'number' || options.limit < 0) {
-                    throw 'Invalid limit'
-                }
+    //             if (typeof options.limit !== 'number' || options.limit < 0) {
+    //                 throw 'Invalid limit'
+    //             }
 
-                const names = [];
-                const tags = [];
-                const tagWithNumbers = [];
+    //             const names = [];
+    //             const tags = [];
+    //             const tagWithNumbers = [];
 
-                for (const item of items) {
-                    if (item.startsWith('name:')) {
-                        // name item
-                        names.push(item.substring(5).toLowerCase());
-                    } else {
-                        // tag item
-                        tags.push(item);
-                    }
-                }
+    //             for (const item of items) {
+    //                 if (item.startsWith('name:')) {
+    //                     // name item
+    //                     names.push(item.substring(5).toLowerCase());
+    //                 } else {
+    //                     // tag item
+    //                     tags.push(item);
+    //                 }
+    //             }
 
-                let result = [];
+    //             let result = [];
 
-                if (options.filter.entity.includes('JournalEntry')) {
-                    result = result.concat(
-                        game.journal.filter(a =>
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('JournalEntry')) {
+    //                 result = result.concat(
+    //                     game.journal.filter(a =>
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
 
-                if (options.filter.entity.includes('Scene')) {
-                    result = result.concat(
-                        game.scenes.filter(a => 
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('Scene')) {
+    //                 result = result.concat(
+    //                     game.scenes.filter(a => 
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
 
-                if (options.filter.entity.includes('Actor')) {
-                    result = result.concat(
-                        game.actors.filter(a => 
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('Actor')) {
+    //                 result = result.concat(
+    //                     game.actors.filter(a => 
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
                 
-                if (options.filter.entity.includes('Item')) {
-                    result = result.concat(
-                        game.items.filter(a => 
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('Item')) {
+    //                 result = result.concat(
+    //                     game.items.filter(a => 
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
 
-                if (options.filter.entity.includes('Token')) {
-                    result = result.concat(
-                        canvas.tokens.getDocuments().filter(a => 
-                            tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || a.actor?.data?.flags?.tagit?.tags?.includes(b)) ||
-                            names.some(b => a.name.toLowerCase().includes(b))
-                        )
-                        .map(a => {
-                            return {
-                                entity: a,
-                                tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
-                                    .filter(item => item !== undefined)
-                                    .sort()
-                            };
-                        })
-                        .filter(a => 
-                            ((options.type === 'all') && (tags.every(b => a.tags.includes(b)) && names.every(b => a.entity.name.toLowerCase().includes(b)))) || 
-                            ((options.type === 'any') && (tags.some(b => a.tags.includes(b)) || names.some(b => a.entity.name.toLowerCase().includes(b))))
-                        )
-                        .map(a => a.entity)
-                    )
-                }
+    //             if (options.filter.entity.includes('Token')) {
+    //                 result = result.concat(
+    //                     canvas.tokens.getDocuments().filter(a => 
+    //                         tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || a.actor?.data?.flags?.tagit?.tags?.includes(b)) ||
+    //                         names.some(b => a.name.toLowerCase().includes(b))
+    //                     )
+    //                     .map(a => {
+    //                         return {
+    //                             entity: a,
+    //                             tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+    //                                 .filter(item => item !== undefined)
+    //                                 .sort()
+    //                         };
+    //                     })
+    //                     .filter(a => 
+    //                         ((options.type === 'all') && (tags.every(b => a.tags.includes(b)) && names.every(b => a.entity.name.toLowerCase().includes(b)))) || 
+    //                         ((options.type === 'any') && (tags.some(b => a.tags.includes(b)) || names.some(b => a.entity.name.toLowerCase().includes(b))))
+    //                     )
+    //                     .map(a => a.entity)
+    //                 )
+    //             }
 
-                if (options.filter.entity.includes('Pack')) {
+    //             if (options.filter.entity.includes('Pack')) {
 
-                    const index = await TagItPackCache.getFullIndex();
+    //                 const index = await TagItPackCache.getFullIndex();
 
-                    let packtags = [];
-                    //for (const pack of TagItPackCache.index) {
-                    for (const pack of index) {
-                        packtags.push({
-                            pack: `${pack.pack}.${pack.name}`,
-                            id: pack.items.filter(a => options.filter.entity.includes(pack.type) &&
-                                    ((options.type === 'all') && (tags.every(b => a.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b)))) ||
-                                    ((options.type === 'any') && (tags.some(b => a.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                                )
-                                .map(a => a._id)
-                        });
-                    }
+    //                 let packtags = [];
+    //                 //for (const pack of TagItPackCache.index) {
+    //                 for (const pack of index) {
+    //                     packtags.push({
+    //                         pack: `${pack.pack}.${pack.name}`,
+    //                         id: pack.items.filter(a => options.filter.entity.includes(pack.type) &&
+    //                                 ((options.type === 'all') && (tags.every(b => a.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b)))) ||
+    //                                 ((options.type === 'any') && (tags.some(b => a.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                             )
+    //                             .map(a => a._id)
+    //                     });
+    //                 }
 
-                    let packentities = [];
+    //                 let packentities = [];
 
-                    for (const index of packtags) {
-                        packentities.push(game.packs.get(index.pack).getDocuments({_id: { $in: index.id }}))
-                    }
+    //                 for (const index of packtags) {
+    //                     packentities.push(game.packs.get(index.pack).getDocuments({_id: { $in: index.id }}))
+    //                 }
 
-                    packentities = (await Promise.all(packentities)).flat();
+    //                 packentities = (await Promise.all(packentities)).flat();
 
-                    result = result.concat(packentities);
-                }
+    //                 result = result.concat(packentities);
+    //             }
 
-                if (options.limit > 0) {
-                    result.splice(0, result.length - options.limit);
-                }
+    //             if (options.limit > 0) {
+    //                 result.splice(0, result.length - options.limit);
+    //             }
 
-                resolve(result);
-            } catch (e) {
-                reject(e);
-            }
-        });
+    //             resolve(result);
+    //         } catch (e) {
+    //             reject(e);
+    //         }
+    //     });
         
 
-       return promise;
-    }
+    //    return promise;
+    // }
 
-    static getSearchTerms(terms) {
-        const rTag = /^(tag:)?((?<unquoted>\w([\w ']+\w)?)|((?<quote>["'])(?<quoted>[^\:]*?(?<!\\))\k<quote>))$/;
-        const rName = /^name:((?<unquoted>\w([\w ']+\w)?)|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>))$/;
-        const rNum = /^((?<unquoted>\w([\w']*\w)?):|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>):)(?<value>[\d]+)$/;
+    // static getSearchTerms(terms) {
+    //     const rTag = /^(tag:)?((?<unquoted>\w([\w ']+\w)?)|((?<quote>["'])(?<quoted>[^\:]*?(?<!\\))\k<quote>))$/;
+    //     const rName = /^name:((?<unquoted>\w([\w ']+\w)?)|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>))$/;
+    //     const rNum = /^((?<unquoted>\w([\w']*\w)?):|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>):)(?<value>[\d]+)$/;
         
-        const tags = [];
-        const names = [];
-        const nums = [];
+    //     const tags = [];
+    //     const names = [];
+    //     const nums = [];
 
-        let matched = false;
-        let match = null;
+    //     let matched = false;
+    //     let match = null;
 
-        for (const term of terms) {
-            matched = false;
+    //     for (const term of terms) {
+    //         matched = false;
 
-            match = term.match(rTag);
-            if (match) {
-                if (match.groups.unquoted) {
-                    tags.push(match.groups.unquoted);
-                } else if (match.groups.quoted) {
-                    tags.push(match.groups.quoted);
-                }
+    //         match = term.match(rTag);
+    //         if (match) {
+    //             if (match.groups.unquoted) {
+    //                 tags.push(match.groups.unquoted);
+    //             } else if (match.groups.quoted) {
+    //                 tags.push(match.groups.quoted);
+    //             }
 
-                matched = true;
-            }
+    //             matched = true;
+    //         }
 
-            match = term.match(rName);
-            if (match) {
-                if (match.groups.unquoted) {
-                    names.push(match.groups.unquoted);
-                } else if (match.groups.quoted) {
-                    names.push(match.groups.quoted);
-                }
+    //         match = term.match(rName);
+    //         if (match) {
+    //             if (match.groups.unquoted) {
+    //                 names.push(match.groups.unquoted);
+    //             } else if (match.groups.quoted) {
+    //                 names.push(match.groups.quoted);
+    //             }
 
-                matched = true;
-            }
+    //             matched = true;
+    //         }
 
-            match = term.match(rNum);
-            if (match) {
-                if (match.groups.unquoted) {
-                    nums.push({tag: match.groups.unquoted, value: match.groups.value});
-                } else if (match.groups.quoted) {
-                    nums.push({tag: match.groups.quoted, value: match.groups.value});
-                }
+    //         match = term.match(rNum);
+    //         if (match) {
+    //             if (match.groups.unquoted) {
+    //                 nums.push({tag: match.groups.unquoted, value: match.groups.value});
+    //             } else if (match.groups.quoted) {
+    //                 nums.push({tag: match.groups.quoted, value: match.groups.value});
+    //             }
 
-                matched = true;
-            }
+    //             matched = true;
+    //         }
 
-            if (!matched) {
-                throw `Invalid search term: ${term}`;
-            }
-        }
+    //         if (!matched) {
+    //             throw `Invalid search term: ${term}`;
+    //         }
+    //     }
 
-        return { tags, names, nums };
-    }
+    //     return { tags, names, nums };
+    // }
 
-    /*
-     */
-    static async searchv2(terms, options) {
-        const promise = new Promise(async function(resolve, reject) {
-            try {
-                const { tags, names, nums } = TagItSearch.getSearchTerms(terms);
+    // /*
+    //  */
+    // static async searchv2(terms, options) {
+    //     const promise = new Promise(async function(resolve, reject) {
+    //         try {
+    //             const { tags, names, nums } = TagItSearch.getSearchTerms(terms);
 
-                const defaultOptions = {
-                    filter: {
-                        entity: ['JournalEntry', 'Scene', 'Actor', 'Item', 'Token', 'Pack']
-                    },
-                    type: 'all',
-                    limit: 50
-                };
+    //             const defaultOptions = {
+    //                 filter: {
+    //                     entity: ['JournalEntry', 'Scene', 'Actor', 'Item', 'Token', 'Pack']
+    //                 },
+    //                 type: 'all',
+    //                 limit: 50
+    //             };
         
-                options = mergeObject(defaultOptions, options);
+    //             options = mergeObject(defaultOptions, options);
 
 
 
-                if (!(['all','any'].includes(options.type))) {
-                    throw 'Invalid type.';
-                }
+    //             if (!(['all','any'].includes(options.type))) {
+    //                 throw 'Invalid type.';
+    //             }
 
-                if (typeof options.limit !== 'number' || options.limit < 0) {
-                    throw 'Invalid limit'
-                }
+    //             if (typeof options.limit !== 'number' || options.limit < 0) {
+    //                 throw 'Invalid limit'
+    //             }
 
-                let result = [];
+    //             let result = [];
 
-                if (options.filter.entity.includes('JournalEntry')) {
-                    result = result.concat(
-                        game.journal.filter(a =>
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('JournalEntry')) {
+    //                 result = result.concat(
+    //                     game.journal.filter(a =>
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
 
-                if (options.filter.entity.includes('Scene')) {
-                    result = result.concat(
-                        game.scenes.filter(a => 
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('Scene')) {
+    //                 result = result.concat(
+    //                     game.scenes.filter(a => 
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
 
-                if (options.filter.entity.includes('Actor')) {
-                    result = result.concat(
-                        game.actors.filter(a => 
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('Actor')) {
+    //                 result = result.concat(
+    //                     game.actors.filter(a => 
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
                 
-                if (options.filter.entity.includes('Item')) {
-                    result = result.concat(
-                        game.items.filter(a => 
-                            ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
-                            ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                        )
-                    );
-                }
+    //             if (options.filter.entity.includes('Item')) {
+    //                 result = result.concat(
+    //                     game.items.filter(a => 
+    //                         ((options.type === 'all') && tags.every(b => a.data.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b))) ||
+    //                         ((options.type === 'any') && (tags.some(b => a.data.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                     )
+    //                 );
+    //             }
 
-                if (options.filter.entity.includes('Token')) {
-                    result = result.concat(
-                        canvas.tokens.getDocuments().filter(a => 
-                            tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || a.actor?.data?.flags?.tagit?.tags?.includes(b)) ||
-                            names.some(b => a.name.toLowerCase().includes(b))
-                        )
-                        .map(a => {
-                            return {
-                                entity: a,
-                                tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
-                                    .filter(item => item !== undefined)
-                                    .sort()
-                            };
-                        })
-                        .filter(a => 
-                            ((options.type === 'all') && (tags.every(b => a.tags.includes(b)) && names.every(b => a.entity.name.toLowerCase().includes(b)))) || 
-                            ((options.type === 'any') && (tags.some(b => a.tags.includes(b)) || names.some(b => a.entity.name.toLowerCase().includes(b))))
-                        )
-                        .map(a => a.entity)
-                    )
-                }
+    //             if (options.filter.entity.includes('Token')) {
+    //                 result = result.concat(
+    //                     canvas.tokens.getDocuments().filter(a => 
+    //                         tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || a.actor?.data?.flags?.tagit?.tags?.includes(b)) ||
+    //                         names.some(b => a.name.toLowerCase().includes(b))
+    //                     )
+    //                     .map(a => {
+    //                         return {
+    //                             entity: a,
+    //                             tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+    //                                 .filter(item => item !== undefined)
+    //                                 .sort()
+    //                         };
+    //                     })
+    //                     .filter(a => 
+    //                         ((options.type === 'all') && (tags.every(b => a.tags.includes(b)) && names.every(b => a.entity.name.toLowerCase().includes(b)))) || 
+    //                         ((options.type === 'any') && (tags.some(b => a.tags.includes(b)) || names.some(b => a.entity.name.toLowerCase().includes(b))))
+    //                     )
+    //                     .map(a => a.entity)
+    //                 )
+    //             }
 
-                if (options.filter.entity.includes('Pack')) {
+    //             if (options.filter.entity.includes('Pack')) {
 
-                    const index = await TagItPackCache.getFullIndex();
+    //                 const index = await TagItPackCache.getFullIndex();
 
-                    let packtags = [];
-                    //for (const pack of TagItPackCache.index) {
-                    for (const pack of index) {
-                        packtags.push({
-                            pack: `${pack.pack}.${pack.name}`,
-                            id: pack.items.filter(a => options.filter.entity.includes(pack.type) &&
-                                    ((options.type === 'all') && (tags.every(b => a.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b)))) ||
-                                    ((options.type === 'any') && (tags.some(b => a.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
-                                )
-                                .map(a => a._id)
-                        });
-                    }
+    //                 let packtags = [];
+    //                 //for (const pack of TagItPackCache.index) {
+    //                 for (const pack of index) {
+    //                     packtags.push({
+    //                         pack: `${pack.pack}.${pack.name}`,
+    //                         id: pack.items.filter(a => options.filter.entity.includes(pack.type) &&
+    //                                 ((options.type === 'all') && (tags.every(b => a.flags?.tagit?.tags?.includes(b)) && names.every(b => a.name.toLowerCase().includes(b)))) ||
+    //                                 ((options.type === 'any') && (tags.some(b => a.flags?.tagit?.tags?.includes(b)) || names.some(b => a.name.toLowerCase().includes(b))))
+    //                             )
+    //                             .map(a => a._id)
+    //                     });
+    //                 }
 
-                    let packentities = [];
+    //                 let packentities = [];
 
-                    for (const index of packtags) {
-                        packentities.push(game.packs.get(index.pack).getDocuments({_id: { $in: index.id }}))
-                    }
+    //                 for (const index of packtags) {
+    //                     packentities.push(game.packs.get(index.pack).getDocuments({_id: { $in: index.id }}))
+    //                 }
 
-                    packentities = (await Promise.all(packentities)).flat();
+    //                 packentities = (await Promise.all(packentities)).flat();
 
-                    result = result.concat(packentities);
-                }
+    //                 result = result.concat(packentities);
+    //             }
 
-                if (options.limit > 0) {
-                    result.splice(0, result.length - options.limit);
-                }
+    //             if (options.limit > 0) {
+    //                 result.splice(0, result.length - options.limit);
+    //             }
 
-                resolve(result);
-            } catch (e) {
-                reject(e);
-            }
-        });
+    //             resolve(result);
+    //         } catch (e) {
+    //             reject(e);
+    //         }
+    //     });
 
-       return promise;
-    }
+    //    return promise;
+    // }
 
     static tokenizer(str) {
         str = str.trim();
@@ -1311,13 +1311,14 @@ export class TagItSearch extends FormApplication {
     static async searchByString(item, options) {
         const promise = new Promise(async function(resolve, reject) {
             try {
-                const promises = TagItPackCache._getPackIndexPromises();
+                //const promises = TagItPackCache._getPackIndexPromises();
 
                 const tokens = TagItSearch.tokenizer(item);
                 const instructions = await TagItSearch.parser(tokens);
 
-                const packIndex = await TagItPackCache._getPacksWithTagsIndex(promises);
-                const results = TagItSearch.exec(instructions, packIndex);
+                //const packIndex = await TagItPackCache._getPacksWithTagsIndex(promises);
+                //const results = TagItSearch.exec(instructions, packIndex);
+                const results = TagItSearch.exec(instructions, TagItPackCache.Index);
 
                 resolve(results);
             } catch (e) {

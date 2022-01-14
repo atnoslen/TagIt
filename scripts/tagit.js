@@ -37,7 +37,7 @@ class TagIt extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        await TagItPackCache.refresh();
+        //await TagItPackCache.refresh();
 
         this.tags = this.entity.getFlag(mod, 'tags');
 
@@ -198,7 +198,11 @@ class TagIt extends FormApplication {
             promises.push(document.setFlag('tagit','tags',tags));
         }
 
-        const index = await TagItPackCache.refresh();
+        //const index = await TagItPackCache.refresh();
+
+        const index = await TagItPackCache._getPacksWithTagsIndex(
+            TagItPackCache._getPackIndexPromises()
+        );
 
         for (const pack of index.filter(a => a.items.some(b => b.flags.tagit.tags.some(c => typeof c === 'string')))) {
             for (const index of pack.items) {
@@ -216,6 +220,12 @@ class TagIt extends FormApplication {
         }
 
         await Promise.all(promises);
+
+        if (promises.length > 0) {
+            await TagItPackCache.init();
+        }
+
+        
 
         console.log(`TagIt!: Migrated ${promises.length} documents.`);
 
@@ -235,9 +245,7 @@ Hooks.on('renderItemSheet', (app, html, data) => {
 });
 
 Hooks.on('renderSceneConfig', (app, html, data) => {
-    console.log('test');
     TagIt._initEntityHook(app, html, data);
-    console.log('test');
 });
 
 Hooks.once('ready', async () => {
