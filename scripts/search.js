@@ -159,27 +159,16 @@ export class TagItSearch extends FormApplication {
                     });
 
                     break;
-                case "Pack":
-                    $(item).addClass('pack')
-                    .attr('data-pack', a.pack);
-
-                    $('a', item).on("click", function () {
-                        game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
-                    });
-
-                    $(item).append(
-                        $('<div>')
-                        .addClass('entity-info')
-                        .append(
-                            $('<p>')
-                            .text(`(${a.pack})`)
-                        )
-                    );
-
-                    break;
             }
 
             if (a.pack) {
+                // Reset click event
+                $('a', item)
+                .off("click")
+                .on("click", function () {
+                    game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
+                });
+
                 $(item).addClass('pack')
                 .attr('data-pack', a.pack);
 
