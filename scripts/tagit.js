@@ -37,8 +37,6 @@ class TagIt extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        //await TagItPackCache.refresh();
-
         this.tags = this.entity.getFlag(mod, 'tags');
 
         if (this.entity.documentName === 'Actor' && this.entity.isToken) {
@@ -198,8 +196,6 @@ class TagIt extends FormApplication {
             promises.push(document.setFlag('tagit','tags',tags));
         }
 
-        //const index = await TagItPackCache.refresh();
-
         const index = await TagItPackCache._getPacksWithTagsIndex(
             TagItPackCache._getPackIndexPromises()
         );
@@ -252,7 +248,7 @@ Hooks.once('ready', async () => {
     Settings.registerSettings();
 
     game.modules.get(mod).api = {
-        search: TagItSearch.searchByString,
+        search: TagItSearch.search,
         packCache: TagItPackCache
     };
 

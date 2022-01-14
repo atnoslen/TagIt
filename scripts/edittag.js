@@ -94,7 +94,6 @@ export class EditTag extends FormApplication {
      */
     async modifyTags(oldTag, newTag) {
         const promises = [];
-        //const packCachePromise = TagItPackCache.refresh();
 
         for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
@@ -111,8 +110,6 @@ export class EditTag extends FormApplication {
         for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
-
-        //await packCachePromise;
 
         for (const pack of TagItPackCache.Index) {
             for (const index of pack.items.filter(a => a.flags.tagit.tags.includes(oldTag))) {

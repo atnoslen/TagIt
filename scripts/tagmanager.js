@@ -50,7 +50,6 @@ export class TagItTagManager {
 
     static async removeAll() {
         const promises = [];
-        //const packRefresh = TagItPackCache.refresh();
 
         for (const entity of game.journal.filter(a => a.data.flags?.tagit)) {
             promises.push(entity.unsetFlag(mod, 'tags'));
@@ -71,8 +70,6 @@ export class TagItTagManager {
         for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit)) {
             promises.push(entity.unsetFlag(mod, 'tags'));
         }
-
-        await packRefresh;
 
         for (const pack of TagItPackCache.Index) {
             for (const index of pack.items) {
