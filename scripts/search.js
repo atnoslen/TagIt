@@ -470,54 +470,11 @@ export class TagItSearch extends FormApplication {
                 id: document.id,
                 name: document.name,
                 type: document.documentName,
-                tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+                tags: [...new Set([].concat(document.data.flags?.tagit?.tags, document.actor?.data?.flags?.tagit?.tags))]
                 .filter(item => item !== undefined)
                 .sort(),
                 document: document,
-                img: a.data.img
-            }
-        }
-
-        const maps = function(type) {
-            switch (type.toLowerCase()) {
-                case "journalentry":
-                case "scene":
-                case "actor":
-                case "item":
-                    return function (document) {
-                        return {
-                            id: document.id,
-                            name: document.name,
-                            type: document.documentName,
-                            tags: document.data.flags?.tagit?.tags,
-                            document: document,
-                            img: (document.documentName === "Scene") ? document.data.thumb : document.img
-                        }
-                    }
-                case "token":
-                    return function (document) {
-                        return {
-                            id: document.id,
-                            name: document.name,
-                            type: document.documentName,
-                            tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
-                            .filter(item => item !== undefined)
-                            .sort(),
-                            document: document,
-                            img: a.data.img
-                        }
-                    }
-                case "pack":
-                    return function (pack, index) {
-                        return {
-                            id: index._id,
-                            name: index.name,
-                            type: pack.type,
-                            tags: index.flags.tagit.tags,
-                            pack: `${pack.pack}.${pack.name}`,
-                            img: (pack.type === "Scene") ? index.thumb : index.img
-                        }
-                    }
+                img: document.data.img
             }
         }
 
@@ -526,6 +483,7 @@ export class TagItSearch extends FormApplication {
 
             let expression = null;
             let filter = null;
+            let tokenFilter = null;
 
             if (Array.isArray(item)) {
                 // Recurse
@@ -541,6 +499,8 @@ export class TagItSearch extends FormApplication {
                         filter = function (document) {
                             return document.name.toLowerCase().includes(value.toLowerCase())
                         }
+
+                        tokenFilter = filter;
 
                         expression = {
                             op: "filter"
@@ -586,29 +546,38 @@ export class TagItSearch extends FormApplication {
                                     );
                                 }
 
-                                let collection = null;
 
                                 switch (doc) {
                                     case "journalentry":
-                                        collection = game.journal;
+                                        documents.push(
+                                            game.journal
+                                            .map(document => documentMap(document))
+                                        )
                                         break;
                                     case "scene":
-                                        collection = game.scenes;
+                                        documents.push(
+                                            game.scenes
+                                            .map(document => documentMap(document))
+                                        )
                                         break;
                                     case "actor":
-                                        collection = game.actors;
+                                        documents.push(
+                                            game.actors
+                                            .map(document => documentMap(document))
+                                        )
                                         break;
                                     case "item":
-                                        collection = game.items;                                        
+                                        documents.push(
+                                            game.items
+                                            .map(document => documentMap(document))
+                                        )                                      
                                         break;
-                                }
-
-                                if (collection) {
-                                    documents.push(
-                                        collection
-                                        //.filter(document => document.data.flags?.tagit?.tags?.length > 0)
-                                        .map(document => documentMap(document))
-                                    );
+                                    case "token":
+                                        documents.push(
+                                            canvas.tokens.getDocuments()
+                                            .map(document => tokenMap(document))
+                                        ) 
+                                        break;
                                 }
 
                                 return documents.flat();
@@ -620,6 +589,11 @@ export class TagItSearch extends FormApplication {
 
                         filter = function(document) {
                             return document.flags?.tagit?.tags?.some(tag => tag.tag === value);
+                        }
+
+                        tokenFilter = function(document) {
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === value) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === value);
                         }
 
                         expression = {
@@ -654,6 +628,11 @@ export class TagItSearch extends FormApplication {
                             return document.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag))
                         }
 
+                        tokenFilter = function(document) {
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag)) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag));
+                        }
+
                         expression =  {
                             op: "filter"
                         }
@@ -665,6 +644,12 @@ export class TagItSearch extends FormApplication {
                 filter = function(document) {
                     return document.flags?.tagit?.tags?.some(tag => tag.tag === item);
                 }
+
+                tokenFilter = function(document) {
+                    return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item) ||
+                    document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item);
+                }
+
 
                 expression = {
                     op: "filter"
@@ -689,6 +674,12 @@ export class TagItSearch extends FormApplication {
                     }
 
                     return indexes.flat();
+                }
+
+                expression.token = function(collection) {
+                    return collection
+                    .filter(document => tokenFilter(document))
+                    .map(document => tokenMap(document));
                 }
             }
 
@@ -764,7 +755,8 @@ export class TagItSearch extends FormApplication {
                             expression.document(game.actors),
                             expression.document(game.scenes),
                             expression.document(game.items),
-                            expression.pack(packIndex)
+                            expression.pack(packIndex),
+                            expression.token(canvas.tokens.getDocuments())
                         );
     
                         break;
