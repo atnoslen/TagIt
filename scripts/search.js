@@ -40,36 +40,25 @@ export class TagItSearch extends FormApplication {
         const _this = this;
         super.activateListeners(html);
 
-        TagItInput.calculateAutocompleteList(_this);
-
-        const options = {
-            onUpdate: () => {
-                _this._renderResults();
-            }
-        }
-
-        TagItInput.registerListeners(_this, options);
-
         $('.entity-filter', html).change(function() {
             _this._renderResults();
         });
+    
+        $(`#taginput${_this.appId}`, html).on('keypress', async function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
 
-        // Add refresh button
-        $('div.tagit.tag.input', html).append(
-            $('<button type="button">')
-            .addClass(['tagit', 'search', 'refresh'])
-            .css('flex-basis', 'content')
-            .append(
-                $('<i>')
-                .addClass(['fas', 'fa-redo', 'center'])
-            )
-            .on("click", async function() {
-                //await TagItPackCache.refresh();
-                _this.tagcache = await TagItTagManager.getUsedTags();
+                const searchString = $(this).val();
 
-                _this._renderResults();
-            })
-        );
+                console.log(`TagIt: Search initiated '${searchString}'`);
+
+                const results = await TagItSearch.searchByString(searchString);
+
+                console.log(results);
+
+                _this._renderResults(results.sort((a,b) => a.name.localeCompare(b.name)));
+            }
+        });
 
         $(`#taginput${_this.appId}`, html).focus();
     }
@@ -78,27 +67,226 @@ export class TagItSearch extends FormApplication {
         return;
     }
 
-    _renderResults() {
-        const _this = this;
+    // _renderResults() {
+    //     const _this = this;
 
-        const collection = $('div.tagit.input div.tag.collection', _this.element);
-        const items = $('span.tag', collection).map(function() {
-            return $(this).text();
-        }).get();
+    //     const collection = $('div.tagit.input div.tag.collection', _this.element);
+    //     const items = $('span.tag', collection).map(function() {
+    //         return $(this).text();
+    //     }).get();
+
+    //     $('.search.directory-list', _this.element).empty();
+
+    //     if (items.length === 0) {
+    //         // No need to render any objects.
+    //         return;
+    //     }
+
+    //     var entities = [];
+    //     $('.tagit.entity-filter input:checked', _this.element).each(function(){
+    //         entities.push($(this).attr('name'));
+    //     });
+
+    //     const results = TagItSearch.getResults(items, entities);
+
+    //     results.forEach(a => {
+    //         let item = $('<li>')
+    //         .attr('data-document-id', a.id)
+    //         .attr('data-type', a.entity)
+    //         .addClass('directory-item')
+    //         .addClass('flexrow')
+    //         .css({"display":"flex"});
+
+    //         if (a.img) {
+    //             $(item).append(
+    //                 $('<img>')
+    //                 .addClass('profile')
+    //                 .attr('src', a.img)
+    //                 .attr('title', a.name)
+    //             );
+    //         }
+
+    //         $(item).append(
+    //             $('<div>')
+    //             .addClass('entry-name')
+    //             .append(
+    //                 $('<h4>')
+    //                 .append(
+    //                     $('<a>').text(a.name)
+    //                 )
+    //             )
+    //         );
+
+    //         switch(a.entity) {
+    //             case "JournalEntry":
+    //                 $(item).addClass('journalentry');
+
+    //                 $('a', item).on("click", function () {
+    //                     game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+    //                 });
+
+    //                 $('div.entry-name', item)
+    //                 .append(
+    //                     $('<div>')
+    //                     .addClass('tag')
+    //                     .addClass('collection')
+    //                     .append(
+    //                         $('<span>')
+    //                         .addClass('tagit')
+    //                         .addClass('tag')
+    //                         .addClass('entity-type')
+    //                         .text('JournalEntry')
+    //                     )
+    //                 );
+
+    //                 break;
+    //             case "Scene":
+    //                     $(item).addClass('scene');
+    
+    //                     $('a', item).on("click", function () {
+    //                         game.scenes.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+    //                     });
+    
+    //                     $('div.entry-name', item)
+    //                     .append(
+    //                         $('<div>')
+    //                         .addClass('tag')
+    //                         .addClass('collection')
+    //                         .append(
+    //                             $('<span>')
+    //                             .addClass('tagit')
+    //                             .addClass('tag')
+    //                             .addClass('entity-type')
+    //                             .text('Scene')
+    //                         )
+    //                     );
+    
+    //                     break;
+    //             case "Actor":
+    //                 $(item).addClass('actor');
+
+    //                 $('a', item).on("click", function () {
+    //                     game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+    //                 });
+
+    //                 $('div.entry-name', item)
+    //                 .append(
+    //                     $('<div>')
+    //                     .addClass('tag')
+    //                     .addClass('collection')
+    //                     .append(
+    //                         $('<span>')
+    //                         .addClass('tagit')
+    //                         .addClass('tag')
+    //                         .addClass('entity-type')
+    //                         .text('Actor')
+    //                     )
+    //                 );
+
+    //                 break;
+    //             case "Item":
+    //                 $(item).addClass('item');
+
+    //                 $('a', item).on("click", function () {
+    //                     game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+    //                 });
+
+    //                 $('div.entry-name', item)
+    //                 .append(
+    //                     $('<div>')
+    //                     .addClass('tag')
+    //                     .addClass('collection')
+    //                     .append(
+    //                         $('<span>')
+    //                         .addClass('tagit')
+    //                         .addClass('tag')
+    //                         .addClass('entity-type')
+    //                         .text('Item')
+    //                     )
+    //                 );
+
+    //                 break;
+    //             case "Token":
+    //                 $(item).addClass('token');
+
+    //                 $('a', item).on("click", function () {
+    //                     canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
+    //                 });
+
+    //                 $('div.entry-name', item)
+    //                 .append(
+    //                     $('<div>')
+    //                     .addClass('tag')
+    //                     .addClass('collection')
+    //                     .append(
+    //                         $('<span>')
+    //                         .addClass('tagit')
+    //                         .addClass('tag')
+    //                         .addClass('entity-type')
+    //                         .text('Token')
+    //                     )
+    //                 );
+
+    //                 break;
+    //             case "Pack":
+    //                 $(item).addClass('pack')
+    //                 .attr('data-pack', a.pack);
+
+    //                 $('a', item).on("click", function () {
+    //                     game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
+    //                 });
+
+    //                 $('div.entry-name', item)
+    //                 .append(
+    //                     $('<div>')
+    //                     .addClass('tag')
+    //                     .addClass('collection')
+    //                     .append(
+    //                         $('<span>')
+    //                         .addClass('tagit')
+    //                         .addClass('tag')
+    //                         .addClass('entity-type')
+    //                         .text(a.type)
+    //                     )
+    //                 )
+
+    //                 $(item).append(
+    //                     $('<div>')
+    //                     .addClass('entity-info')
+    //                     .append(
+    //                         $('<p>')
+    //                         .text(`(${a.pack})`)
+    //                     )
+    //                 );
+
+    //                 break;
+    //         }
+
+    //         const collectionElement = $('div.tag.collection', item);
+
+    //         for (const tag of a.tags) {
+    //             $(collectionElement)
+    //             .append(
+    //                 $('<span>')
+    //                 .addClass('tagit')
+    //                 .addClass('tag')
+    //                 .text(tag)
+    //             );
+    //         }
+
+    //         $('.search.directory-list', _this.element).append(item);
+    //     });
+    // }
+
+    _renderResults(results) {
+        const _this = this;
 
         $('.search.directory-list', _this.element).empty();
 
-        if (items.length === 0) {
+        if (results.length === 0) {
             // No need to render any objects.
             return;
         }
-
-        var entities = [];
-        $('.tagit.entity-filter input:checked', _this.element).each(function(){
-            entities.push($(this).attr('name'));
-        });
-
-        const results = TagItSearch.getResults(items, entities);
 
         results.forEach(a => {
             let item = $('<li>')
@@ -128,7 +316,7 @@ export class TagItSearch extends FormApplication {
                 )
             );
 
-            switch(a.entity) {
+            switch(a.type) {
                 case "JournalEntry":
                     $(item).addClass('journalentry');
 
@@ -273,6 +461,20 @@ export class TagItSearch extends FormApplication {
                     break;
             }
 
+            if (a.pack) {
+                $(item).addClass('pack')
+                .attr('data-pack', a.pack);
+
+                $(item).append(
+                    $('<div>')
+                    .addClass('entity-info')
+                    .append(
+                        $('<p>')
+                        .text(`(${a.pack})`)
+                    )
+                );
+            }
+
             const collectionElement = $('div.tag.collection', item);
 
             for (const tag of a.tags) {
@@ -281,7 +483,7 @@ export class TagItSearch extends FormApplication {
                     $('<span>')
                     .addClass('tagit')
                     .addClass('tag')
-                    .text(tag)
+                    .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`)
                 );
             }
 
@@ -289,83 +491,83 @@ export class TagItSearch extends FormApplication {
         });
     }
 
-    static getResults(tags, entities = []) {
+    // static getResults(tags, entities = []) {
         
-        let result = [];
+    //     let result = [];
 
-        if (entities.includes('JournalEntry')) {
-            result = result.concat(
-                game.journal.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
-            );
-        }
+    //     if (entities.includes('JournalEntry')) {
+    //         result = result.concat(
+    //             game.journal.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
+    //             .map(a => { return {entity: "JournalEntry", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
+    //         );
+    //     }
 
-        if (entities.includes('Scene')) {
-            result = result.concat(
-                game.scenes.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Scene", id: a.id, name: a.name, img: a.data.thumb, tags: a.data.flags.tagit.tags}})
-            );
-        }
+    //     if (entities.includes('Scene')) {
+    //         result = result.concat(
+    //             game.scenes.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
+    //             .map(a => { return {entity: "Scene", id: a.id, name: a.name, img: a.data.thumb, tags: a.data.flags.tagit.tags}})
+    //         );
+    //     }
 
-        if (entities.includes('Actor')) {
-            result = result.concat(
-                game.actors.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
-            );
-        }
+    //     if (entities.includes('Actor')) {
+    //         result = result.concat(
+    //             game.actors.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
+    //             .map(a => { return {entity: "Actor", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
+    //         );
+    //     }
         
-        if (entities.includes('Item')) {
-            result = result.concat(
-                game.items.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
-                .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
-            );
-        }
+    //     if (entities.includes('Item')) {
+    //         result = result.concat(
+    //             game.items.filter(a => tags.every(b => a.data.flags?.tagit?.tags?.includes(b)))
+    //             .map(a => { return {entity: "Item", id: a.id, name: a.name, img: a.data.img, tags: a.data.flags.tagit.tags}})
+    //         );
+    //     }
 
-        if (entities.includes('Token')) {
-            const tokenResults = canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))));
+    //     if (entities.includes('Token')) {
+    //         const tokenResults = canvas.tokens.getDocuments().filter(a => (a.isLinked === false) && (tags.every(b => a.data.flags?.tagit?.tags?.includes(b) || tags.every(b => a.actor?.data?.flags?.tagit?.tags?.includes(b)))));
 
-            result = result.concat(
-                canvas.tokens.getDocuments().filter(a => tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || tags.some(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
-                .map(a => {
-                    return {
-                        entity: "Token",
-                        id: a.id,
-                        name: a.name,
-                        img: a.data.img,
-                        tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
-                              .filter(item => item !== undefined)
-                              .sort()
-                    };
-                })
-                .filter(a => tags.every(b => a.tags.includes(b)))
-            )
-        }
+    //         result = result.concat(
+    //             canvas.tokens.getDocuments().filter(a => tags.some(b => a.data.flags?.tagit?.tags?.includes(b) || tags.some(b => a.actor?.data?.flags?.tagit?.tags?.includes(b))))
+    //             .map(a => {
+    //                 return {
+    //                     entity: "Token",
+    //                     id: a.id,
+    //                     name: a.name,
+    //                     img: a.data.img,
+    //                     tags: [...new Set([].concat(a.data.flags?.tagit?.tags, a.actor?.data?.flags?.tagit?.tags))]
+    //                           .filter(item => item !== undefined)
+    //                           .sort()
+    //                 };
+    //             })
+    //             .filter(a => tags.every(b => a.tags.includes(b)))
+    //         )
+    //     }
 
-        if (entities.includes('Pack')) {
+    //     if (entities.includes('Pack')) {
 
-            let packtags = [];
-            for (const pack of TagItPackCache.Index) {
-                packtags.push( pack.items.filter(a => entities.includes(pack.type) && tags.every(b => a.flags.tagit.tags.includes(b)))
-                .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: ((pack.type === "Scene") ? a.thumb : a.img), tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
-            }
+    //         let packtags = [];
+    //         for (const pack of TagItPackCache.Index) {
+    //             packtags.push( pack.items.filter(a => entities.includes(pack.type) && tags.every(b => a.flags.tagit.tags.includes(b)))
+    //             .map(a => { return { entity: "Pack", type: pack.type, id: a._id, name: a.name, img: ((pack.type === "Scene") ? a.thumb : a.img), tags: a.flags.tagit.tags, pack: pack.pack + '.' + pack.name }}));
+    //         }
 
-            packtags = packtags.flat();
+    //         packtags = packtags.flat();
 
-            result = result.concat(packtags.flat());
-        }
+    //         result = result.concat(packtags.flat());
+    //     }
 
-        result.sort((a,b) => {
-            if (a.name < b.name) {
-                return -1;
-            }
-            if (a.name > b.name) {
-                return 1;
-            }
-            return 0;
-         });
+    //     result.sort((a,b) => {
+    //         if (a.name < b.name) {
+    //             return -1;
+    //         }
+    //         if (a.name > b.name) {
+    //             return 1;
+    //         }
+    //         return 0;
+    //      });
 
-        return result;
-    }
+    //     return result;
+    // }
 
     // static async search(items, options) {
     //     const promise = new Promise(async function(resolve, reject) {
@@ -978,13 +1180,14 @@ export class TagItSearch extends FormApplication {
 
                                 if (packIndex) {
                                     documents.push(
-                                        packIndex.filter(a => a.type === value)
+                                        packIndex.filter(a => a.type.toLowerCase() === value.toLowerCase())
                                         .flatMap(a=> a.items
                                             .map(b => {
                                                 return {
                                                     id: b._id,
                                                     name: b.name,
                                                     type: a.type,
+                                                    tags: b.flags.tagit.tags,
                                                     pack: `${a.pack}.${a.name}`,
                                                     img: (a.type === "Scene") ? b.thumb : b.img
                                                 }
@@ -993,71 +1196,38 @@ export class TagItSearch extends FormApplication {
                                     );
                                 }
 
+                                let collection = null;
+
                                 switch (value.toLowerCase()) {
                                     case "journalentry":
-                                        documents.push(
-                                            game.journal
-                                            .map(document => {
-                                                return {
-                                                    id: document.id,
-                                                    name: document.name,
-                                                    type: document.documentName,
-                                                    tags: document.data.flags?.tagit?.tags,
-                                                    document: document,
-                                                    img: document.img
-                                                }
-                                            })
-                                        );
-
+                                        collection = game.journal;
                                         break;
                                     case "scene":
-                                        documents.push(
-                                            game.scenes
-                                            .map(document => {
-                                                return {
-                                                    id: document.id,
-                                                    name: document.name,
-                                                    type: document.documentName,
-                                                    tags: document.data.flags?.tagit?.tags,
-                                                    document: document,
-                                                    img: document.data.thumb
-                                                }
-                                            })
-                                        );
-                                        
+                                        collection = game.scenes;
                                         break;
                                     case "actor":
-                                        documents.push(
-                                            game.actors
-                                            .map(document => {
-                                                return {
-                                                    id: document.id,
-                                                    name: document.name,
-                                                    type: document.documentName,
-                                                    tags: document.data.flags?.tagit?.tags,
-                                                    document: document,
-                                                    img: document.img
-                                                }
-                                            })
-                                        );
-                                        
+                                        collection = game.actors;
                                         break;
                                     case "item":
-                                        documents.push(
-                                            game.items
-                                            .map(document => {
-                                                return {
-                                                    id: document.id,
-                                                    name: document.name,
-                                                    type: document.documentName,
-                                                    tags: document.data.flags?.tagit?.tags,
-                                                    document: document,
-                                                    img: document.img
-                                                }
-                                            })
-                                        );
-                                        
+                                        collection = game.items;                                        
                                         break;
+                                }
+
+                                if (collection) {
+                                    documents.push(
+                                        collection
+                                        .filter(document => document.data.flags?.tagit?.tags?.length > 0)
+                                        .map(document => {
+                                            return {
+                                                id: document.id,
+                                                name: document.name,
+                                                type: document.documentName,
+                                                tags: document.data.flags.tagit.tags,
+                                                document: document,
+                                                img: (value.toLowerCase() === "scene") ? document.thumb : document.img
+                                            }
+                                        })
+                                    );
                                 }
 
                                 return documents.flat();
@@ -1328,43 +1498,6 @@ export class TagItSearch extends FormApplication {
         });
 
         return promise;
-    }
-}
-
-class SearchItem {
-    constructor(itemString) {
-        this._item = SearchItem.toDict(itemString);
-    }
-    
-    get dict() { return this._item; }
-
-    static toDict(searchString) {
-        const rTag = /^(tag:)?((?<unquoted>\w([\w '\!\?\.]+[\w\!\?\.])?)|((?<quote>["'])(?<quoted>[^\:]*?(?<!\\))\k<quote>))$/;
-        const rName = /^name:((?<unquoted>\w([\w '\!\?\.]+[\w\!\?\.])?)|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>))$/;
-        const rNum = /^((?<unquoted>\w([\w'\!\?\.]*[\w\!\?\.])?):|((?<quote>["'])(?<quoted>.*?(?<!\\))\k<quote>)):(?<value>[\d]+)$/;
-
-        let match = searchString.match(rTag);
-        if (match) {
-            return (match.groups.unquoted) ?
-            {tag: match.groups.unquoted} :
-            {tag: match.groups.quoted};
-        }
-
-        match = searchString.match(rName);
-        if (match) {
-            return (match.groups.unquoted) ?
-            {name: match.groups.unquoted} :
-            {name: match.groups.quoted};
-        }
-
-        match = searchString.match(rNum);
-        if (match) {
-            return (match.groups.unquoted) ?
-            {tag: match.groups.unquoted, value: match.groups.value} :
-            {tag: match.groups.quoted, value: match.groups.value};
-        }
-
-        throw `Invalid search term: ${searchString}`;
     }
 }
 

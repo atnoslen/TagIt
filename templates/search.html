@@ -1,26 +1,11 @@
 <form style="height:100%; overflow:hidden;">
     <div class="directory flexcol tagit search-app">
         <header class="directory-header flexcol">
-            {{> 'modules/tagit/templates/input-partial.html' this}}
-            <div class="tagit entity-filter">
-                <label for="journalentries">
-                    <input type="checkbox" id="journalentries" name="JournalEntry" checked>Journals
-                </label>
-                <label for="scenes">
-                    <input type="checkbox" id="scenes" name="Scene" checked>Scenes
-                </label>
-                <label for="actors">
-                    <input type="checkbox" id="actors" name="Actor" checked>Actors
-                </label>
-                <label for="items">
-                    <input type="checkbox" id="items" name="Item" checked>Items
-                </label>
-                <label for="tokens">
-                    <input type="checkbox" id="tokens" name="Token" checked>Tokens
-                </label>
-                <label for="packs">
-                    <input type="checkbox" id="packs" name="Pack" checked>Compendiums
-                </label>
+            <div class="tagit input">
+                <div class="tagit tag input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
+                </div>
             </div>
         </header>
         <ol class="tagit search directory-list">
