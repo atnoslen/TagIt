@@ -53,8 +53,6 @@ export class TagItSearch extends FormApplication {
 
                 const results = await TagItSearch.search(searchString);
 
-                console.log(results);
-
                 _this._renderResults(results.sort((a,b) => a.name.localeCompare(b.name)));
             }
         });
