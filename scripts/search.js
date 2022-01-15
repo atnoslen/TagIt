@@ -424,9 +424,11 @@ export class TagItSearch extends FormApplication {
 
                     if (index + 1 == length) {
                         // Encountered ':' at end of string
+                        ui.notifications.error("Invalid input - Cannot end with ':'");
                         throw "Invalid input - Cannot end with ':'"
                     } else if (index == 0 && tokens.length == 0) {
                         // Start of token or string is ':'
+                        ui.notifications.error("Invalid input - Cannot start with ':'");
                         throw "Invalid input - Cannot start with ':'"
                     }
 
@@ -488,13 +490,17 @@ export class TagItSearch extends FormApplication {
         }
 
         if (sQuote) {
-            throw `Invalid input - Unclosed "'"`;
+            ui.notifications.error(`Invalid input - Unclosed quote (')`);
+            throw `Invalid input - Unclosed quote (')`;
         } else if (dQuote) {
-            throw `Invalid input - Unclosed '"'`;
+            ui.notifications.error(`Invalid input - Unclosed quote (")`);
+            throw `Invalid input - Unclosed quote (")`;
         } else if (parenDepth < 0) {
+            ui.notifications.error(`Invalid input - Too many ')'`);
             throw `Invalid input - Too many ')'`;
         } else if (parenDepth > 0) {
-            throw `Invalid input - Not enough ')'`;
+            ui.notifications.error(`Invalid input - Unclosed '('`);
+            throw `Invalid input - Unclosed '('`;
         }
 
         return tokens;

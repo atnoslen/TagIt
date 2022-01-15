@@ -23,6 +23,7 @@ export class TagItInput {
         }
 
         if (TagItSearch.reservedTokens.includes(tag.tag.toLowerCase())) {
+            ui.notifications.error("Invalid tag - Reserved Token");
             throw "Invalid tag - Reserved Token"
         }
     
@@ -94,7 +95,10 @@ export class TagItInput {
 
     static textToTag(text) {
         const num = text.split(':');
-        if (num.length > 2) { throw "Invalid tag." };
+        if (num.length > 2) {
+            ui.notifications.error("Invalid tag - Too many ':'");
+            throw "Invalid tag - Too many ':'"
+        };
 
         return (num.length == 2) ? { tag: num[0], value: num[1] } : { tag: num[0] };
     }
