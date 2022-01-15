@@ -15,6 +15,7 @@ A module to tag entities and then search for them.
 * Add tags to JournalEntries, Actors, Items, Tokens, and Compendium entires
 * Search for tags by pressing Ctrl-Shift-F
 * Open items from search
+* Drag them to where you need
 
 # Demo
 
