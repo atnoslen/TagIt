@@ -490,6 +490,15 @@ export class TagItSearch extends FormApplication {
         return tokens;
     }
 
+    static reservedTokens = [
+        'n',
+        'name',
+        't',
+        'type',
+        'document-type',
+        'tag'
+    ]
+
     static async parser(tokens) {
         let expressions = [];
 
