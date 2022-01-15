@@ -17,6 +17,7 @@ export class TagItSearch extends FormApplication {
 
     static get defaultOptions() {
         const options = super.defaultOptions;
+
         options.template = `modules/${mod}/templates/search.html`;
         options.width = '525';
         options.height = '500';
@@ -84,7 +85,7 @@ export class TagItSearch extends FormApplication {
 
         $(`#taginput${_this.appId}`, html).focus();
     }
-    
+
     async _updateObject(event, formData) {
         return;
     }
@@ -104,6 +105,7 @@ export class TagItSearch extends FormApplication {
             .attr('data-document-id', a.id)
             .attr('data-type', a.entity)
             .addClass('directory-item')
+            .addClass('tagit-search-item')
             .addClass('flexrow')
             .css({"display":"flex"});
 
@@ -141,9 +143,24 @@ export class TagItSearch extends FormApplication {
                 )
             );
 
+            const dragData = {
+                id: a.id,
+                type: a.type
+            };
+
+            if (a.pack) {
+                dragData.pack = a.pack;
+            }
+
             switch(a.type) {
                 case "JournalEntry":
-                    $(item).addClass('journalentry');
+                    $(item)
+                    .addClass('journalentry')
+                    .attr('draggable', 'true')
+                    .on('dragstart', function (e) {
+                        e.originalEvent.dataTransfer
+                        .setData("text/plain",JSON.stringify(dragData))
+                    });
 
                     $('a', item).on("click", function () {
                         game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
@@ -151,7 +168,13 @@ export class TagItSearch extends FormApplication {
 
                     break;
                 case "Scene":
-                    $(item).addClass('scene');
+                    $(item)
+                    .addClass('scene')
+                    .attr('draggable', 'true')
+                    .on('dragstart', function (e) {
+                        e.originalEvent.dataTransfer
+                        .setData("text/plain",JSON.stringify(dragData))
+                    });
 
                     $('a', item).on("click", function () {
                         game.scenes.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
@@ -159,7 +182,13 @@ export class TagItSearch extends FormApplication {
 
                     break;
                 case "Actor":
-                    $(item).addClass('actor');
+                    $(item)
+                    .addClass('actor')
+                    .attr('draggable', 'true')
+                    .on('dragstart', function (e) {
+                        e.originalEvent.dataTransfer
+                        .setData("text/plain",JSON.stringify(dragData))
+                    });
 
                     $('a', item).on("click", function () {
                         game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
@@ -167,7 +196,13 @@ export class TagItSearch extends FormApplication {
 
                     break;
                 case "Item":
-                    $(item).addClass('item');
+                    $(item)
+                    .addClass('item')
+                    .attr('draggable', 'true')
+                    .on('dragstart', function (e) {
+                        e.originalEvent.dataTransfer
+                        .setData("text/plain",JSON.stringify(dragData))
+                    });
 
                     $('a', item).on("click", function () {
                         game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
