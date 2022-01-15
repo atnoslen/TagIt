@@ -139,6 +139,11 @@ export class TagItSearch extends FormApplication {
                     .addClass('tagit')
                     .addClass('tag')
                     .addClass('entity-type')
+                    .css({
+                        'background-color': game.settings.get(mod, 'defaultColor').document.tag,
+                        'border-color': game.settings.get(mod, 'defaultColor').document.tag,
+                        'color': game.settings.get(mod, 'defaultColor').document.text
+                    })
                     .text(a.type)
                 )
             );
@@ -249,14 +254,19 @@ export class TagItSearch extends FormApplication {
                     .addClass('tag')
                     .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`);
 
+                    const color = game.settings.get(mod, 'defaultColor').tag;
+
                     if (tag.color) {
-                        $(span)
-                        .css({
-                            'background-color':tag.color.tag,
-                            'border-color':tag.color.tag,
-                            'color':tag.color.text
-                        })
+                        color.tag = tag.color.tag;
+                        color.text = tag.color.text;
                     }
+
+                    $(span)
+                    .css({
+                        'background-color':color.tag,
+                        'border-color':color.tag,
+                        'color':color.text
+                    })
 
                     $(collectionElement).append(span);
                 }

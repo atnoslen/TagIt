@@ -69,12 +69,18 @@ export class TagItInput {
                 ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : orig;
         }
 
-        if ($(span).attr('style')) {
-            tag.color = {
-                tag: rgb2hex($(span).css('background-color')),
-                text: rgb2hex($(span).css('color'))
-            }
+        tag.color = {
+            tag: rgb2hex($(span).css('background-color')),
+            text: rgb2hex($(span).css('color'))
         }
+
+        if (tag.color.tag === game.settings.get(mod, 'defaultColor').tag.tag &&
+            tag.color.text === game.settings.get(mod, 'defaultColor').tag.text) {
+            // Default color asigned.
+            delete tag.color;
+        }
+
+        
         return tag;
     }
 
@@ -115,14 +121,19 @@ export class TagItInput {
         .addClass('tag')
         .text(text);
 
+        let color = game.settings.get(mod, 'defaultColor').tag;
+
         if (otherTag && otherTag.color) {
-            $(ele)
-            .css({
-                'background-color':otherTag.color.tag,
-                'border-color':otherTag.color.tag,
-                'color':otherTag.color.text
-            });
+            color.tag = otherTag.color.tag;
+            color.text = otherTag.color.text;
         }
+
+        $(ele)
+        .css({
+            'background-color':color.tag,
+            'border-color':color.tag,
+            'color':color.text
+        });
 
         if (options.readonly === false) {
             $(ele).append(

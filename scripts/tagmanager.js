@@ -64,30 +64,65 @@ export class TagItTagManager {
 
         const scenetags = game.scenes.filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags;
+            return a.data.flags.tagit.tags
+            .filter(b => {
+                if (tags.has(b.tag)) {return false;}
+                tags.add(b.tag);
+                return true;
+            });
         })
         .flat();
     
         const actortags = game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags;
+            return a.data.flags.tagit.tags
+            .filter(b => {
+                if (tags.has(b.tag)) {return false;}
+                tags.add(b.tag);
+                return true;
+            });
         })
         .flat();
     
         const itemtags = game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags;
+            return a.data.flags.tagit.tags
+            .filter(b => {
+                if (tags.has(b.tag)) {return false;}
+                tags.add(b.tag);
+                return true;
+            });
         })
         .flat();
     
-        const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        .map(a => {
-            return a.data.flags.tagit.tags;
-        })
+        // const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        // .map(a => {
+        //     return a.data.flags.tagit.tags
+        //     .filter(b => {
+        //         if (tags.has(b.tag)) {return false;}
+        //         tags.add(b.tag);
+        //         return true;
+        //     });
+        // })
+        // .flat();
+
+        const tokentags = game.scenes.filter(a => a.tokens.some(b => b.data.flags?.tagit?.tags?.length))
+        .flatMap(a => a.tokens)
+        .map(a => a.flags.tagit.tags
+            .filter(b => {
+                if (tags.has(b.tag)) {return false;}
+                tags.add(b.tag);
+                return true;
+            }))
         .flat();
     
         const packtags = TagItPackCache.Index.flatMap(a => a.items)
-        .map(a => a.flags.tagit.tags)
+        .map(a => a.flags.tagit.tags
+            .filter(b => {
+                if (tags.has(b.tag)) {return false;}
+                tags.add(b.tag);
+                return true;
+            }))
         .flat();
     
         return [...new Set([].concat(journaltags, scenetags, actortags, itemtags, tokentags, packtags))]

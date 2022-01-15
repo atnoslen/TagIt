@@ -44,7 +44,7 @@ export class EditTag extends FormApplication {
             data.color = this.original.color;
         } else {
             data.useDefaultColor = true;
-            data.color = game.settings.get(mod, 'defaultColor');
+            data.color = game.settings.get(mod, 'defaultColor').tag;
         }
 
         data.owner = game.user.id;
@@ -118,8 +118,8 @@ export class EditTag extends FormApplication {
     }
 
     updatePreview(html) {
-        let tag = game.settings.get(mod, 'defaultColor').tag;
-        let text = game.settings.get(mod, 'defaultColor').text;
+        let tag = game.settings.get(mod, 'defaultColor').tag.tag;
+        let text = game.settings.get(mod, 'defaultColor').tag.text;
 
         if (!$('input[name=defaultColor]', html).prop('checked')) {
             tag = $('input[name=tagColor]', html).val();

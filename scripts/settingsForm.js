@@ -96,14 +96,18 @@ export class SettingsForm extends FormApplication {
                 })
             );
 
+            let color = game.settings.get(mod, 'defaultColor').tag;
+
             if (tag.color) {
-                $(span)
-                .css({
-                    'background-color':tag.color.tag,
-                    'border-color':tag.color.tag,
-                    'color':tag.color.text
-                })
+                color = tag.color;
             }
+
+            $(span)
+            .css({
+                'background-color':color.tag,
+                'border-color':color.tag,
+                'color':color.text
+            });
 
             container.append(span);
         }
