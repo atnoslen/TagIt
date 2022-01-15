@@ -1,4 +1,5 @@
 import { Settings, mod } from "./settings.js";
+import { TagItSearch } from './search.js';
 
 export class TagItInput {
     /**
@@ -7,7 +8,7 @@ export class TagItInput {
      * @param {String} tag - The tag to be added
      * @param {Object.<string, Object>} [options={updateAutocomplete=true}] - Options
      */
-     static addtag(tag, form, options) {
+     static async addtag(tag, form, options) {
         const defaults = {
             updateAutocomplete: true,
             readonly: false,
@@ -34,7 +35,7 @@ export class TagItInput {
             }
             
             // Add to collection
-            collection.append(TagItInput.tagToSpan(tag, form, options));
+            collection.append(await TagItInput.tagToSpan(tag, form, options));
 
             // Clear the input
             $(`#taginput${form.appId}`, form.element).val('');
@@ -54,7 +55,23 @@ export class TagItInput {
     }
 
     static spanToTag(span) {
-        return TagItInput.textToTag($(span).text());
+        const tag = TagItInput.textToTag($(span).text());
+
+        function rgb2hex(orig){
+            var rgb = orig.replace(/\s/g,'').match(/^rgba?\((\d+),(\d+),(\d+)/i);
+            return (rgb && rgb.length === 4) ? "#" +
+                ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : orig;
+        }
+
+        if ($(span).attr('style')) {
+            tag.color = {
+                tag: rgb2hex($(span).css('background-color')),
+                text: rgb2hex($(span).css('color'))
+            }
+        }
+        return tag;
     }
 
     static spanToTagLowerCase(span) {
@@ -78,13 +95,30 @@ export class TagItInput {
         return (num.length > 1) ? { tag: num[0].toLowerCase(), value: num[1] } : { tag: num[0].toLowerCase() };
     }
 
-    static tagToSpan(tag, form, options) {
+    static async tagToSpan(tag, form, options) {
         const text = (tag.value) ? `${tag.tag}:${tag.value}` : `${tag.tag}`;
+
+        let otherTag = null;
+        const otherItems = await TagItSearch.search(tag.tag, {limit:1});
+        
+        if (otherItems.length > 0) {
+            otherTag = otherItems[0].tags.filter(a => a.tag === tag.tag)[0];
+        }
+        
 
         const ele = $('<span>')
         .addClass('tagit')
         .addClass('tag')
         .text(text);
+
+        if (otherTag && otherTag.color) {
+            $(ele)
+            .css({
+                'background-color':otherTag.color.tag,
+                'border-color':otherTag.color.tag,
+                'color':otherTag.color.text
+            });
+        }
 
         if (options.readonly === false) {
             $(ele).append(
@@ -140,7 +174,7 @@ export class TagItInput {
         };
         options = $.extend({}, defaults, options || {});
 
-        $(`#taginput${form.appId}`, form.element).on('input', function (event) {
+        $(`#taginput${form.appId}`, form.element).on('input', async function (event) {
             if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
                 // Selected a tag from dropdown
 
@@ -151,7 +185,7 @@ export class TagItInput {
             }
         });
     
-        $(`#taginput${form.appId}`, form.element).on('keypress', function(event) {
+        $(`#taginput${form.appId}`, form.element).on('keypress', async function(event) {
             if (event.keyCode === 13) {
                 event.preventDefault();
 

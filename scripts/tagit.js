@@ -89,7 +89,7 @@ class TagIt extends FormApplication {
             const items = $('span.tagit.tag', collection)
             .map(function() {
                 if ($('i.fa-times-circle', this).length > 0) {
-                    return TagItInput.textToTag($(this).text());
+                    return TagItInput.spanToTag($(this));
                 }
             }).get().sort((a,b) => {
                 const comp = a.tag.localeCompare(b.tag);

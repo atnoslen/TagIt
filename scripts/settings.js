@@ -19,6 +19,13 @@ export class Settings {
      * @memberof Settings
      */
     static registerSettings() {
+        game.settings.register(mod, 'defaultColor', {
+            name: "Default Tag Color",
+            scope: "world",
+            config: false,
+            default: {tag: "#8c0000", text: "#ffffff"},
+            type: Object
+        })
         game.settings.registerMenu(mod, 'settingsMenu', {
             name: "Update Tags",
             label: "Modify",

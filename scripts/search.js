@@ -244,13 +244,21 @@ export class TagItSearch extends FormApplication {
 
             if (a.tags) {
                 for (const tag of a.tags) {
-                    $(collectionElement)
-                    .append(
-                        $('<span>')
-                        .addClass('tagit')
-                        .addClass('tag')
-                        .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`)
-                    );
+                    const span = $('<span>')
+                    .addClass('tagit')
+                    .addClass('tag')
+                    .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`);
+
+                    if (tag.color) {
+                        $(span)
+                        .css({
+                            'background-color':tag.color.tag,
+                            'border-color':tag.color.tag,
+                            'color':tag.color.text
+                        })
+                    }
+
+                    $(collectionElement).append(span);
                 }
             }
 

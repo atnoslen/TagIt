@@ -55,7 +55,7 @@ export class SettingsForm extends FormApplication {
      */
     async loadTags() {
         const _this = this;
-        _this.tags = await TagItTagManager.getUsedTags();
+        _this.tags = await TagItTagManager.getUsedTags2();
         
         const text = $(`#taginput${_this.appId}`, _this.element)
         .val()
@@ -66,7 +66,7 @@ export class SettingsForm extends FormApplication {
 
         if (text.length > 0) {
             // Has filter in place
-            tags = tags.filter(a => a.toLowerCase().includes(text));
+            tags = tags.filter(a => a.tag.toLowerCase().includes(text));
         }
 
         _this.loadContainer(tags);
@@ -77,26 +77,35 @@ export class SettingsForm extends FormApplication {
         const container = $('div.tag.collection', _this.element).empty();
 
         for (const tag of tags) {
-            container.append(
-                $('<span>')
-                .addClass('tagit')
-                .addClass('tag')
+            const span = $('<span>')
+            .addClass('tagit')
+            .addClass('tag')
+            .css('margin','0.2em')
+            .append(
+                $('<a>')
                 .css('cursor','pointer')
-                .css('margin','0.2em')
-                .append(
-                    $('<a>')
-                    .text(tag)
-                    .on('click', function() {
-                        const data = {
-                            tag: $(this).text(),
-                            onsubmit: function () {
-                                _this.loadTags();
-                            }
+                .text(tag.tag)
+                .on('click', function() {
+                    const data = {
+                        tag: $(this).text(),
+                        onsubmit: function () {
+                            _this.loadTags();
                         }
-                        const editApp = new EditTag(data).render(true);
-                    })
-                )
-            )
+                    }
+                    const editApp = new EditTag(data).render(true);
+                })
+            );
+
+            if (tag.color) {
+                $(span)
+                .css({
+                    'background-color':tag.color.tag,
+                    'border-color':tag.color.tag,
+                    'color':tag.color.text
+                })
+            }
+
+            container.append(span);
         }
     }
 
@@ -119,7 +128,7 @@ export class SettingsForm extends FormApplication {
             let tags = _this.tags;
 
             if (text.length > 0) {
-                tags = tags.filter(a => a.toLowerCase().includes(text));
+                tags = tags.filter(a => a.tag.toLowerCase().includes(text));
             }
 
             _this.loadContainer(tags);

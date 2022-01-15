@@ -48,6 +48,52 @@ export class TagItTagManager {
         return [...new Set([].concat(journaltags, scenetags, actortags, itemtags, tokentags, packtags))].sort();
     }
 
+    static async getUsedTags2() {
+        let tags = new Set();
+    
+        const journaltags = game.journal.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        .map(a => {
+            return a.data.flags.tagit.tags
+            .filter(b => {
+                if (tags.has(b.tag)) {return false;}
+                tags.add(b.tag);
+                return true;
+            });
+        })
+        .flat();
+
+        const scenetags = game.scenes.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        .map(a => {
+            return a.data.flags.tagit.tags;
+        })
+        .flat();
+    
+        const actortags = game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        .map(a => {
+            return a.data.flags.tagit.tags;
+        })
+        .flat();
+    
+        const itemtags = game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        .map(a => {
+            return a.data.flags.tagit.tags;
+        })
+        .flat();
+    
+        const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        .map(a => {
+            return a.data.flags.tagit.tags;
+        })
+        .flat();
+    
+        const packtags = TagItPackCache.Index.flatMap(a => a.items)
+        .map(a => a.flags.tagit.tags)
+        .flat();
+    
+        return [...new Set([].concat(journaltags, scenetags, actortags, itemtags, tokentags, packtags))]
+        .sort((a,b) => a.tag.localeCompare(b.tag));
+    }
+
     static async removeAll() {
         const promises = [];
 
