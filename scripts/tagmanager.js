@@ -94,21 +94,10 @@ export class TagItTagManager {
             });
         })
         .flat();
-    
-        // const tokentags = canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.length > 0)
-        // .map(a => {
-        //     return a.data.flags.tagit.tags
-        //     .filter(b => {
-        //         if (tags.has(b.tag)) {return false;}
-        //         tags.add(b.tag);
-        //         return true;
-        //     });
-        // })
-        // .flat();
 
-        const tokentags = game.scenes.filter(a => a.tokens.some(b => b.data.flags?.tagit?.tags?.length))
-        .flatMap(a => a.tokens)
-        .map(a => a.flags.tagit.tags
+        const tokentags = game.scenes.filter(a => a.tokens.some(b => b.data.flags?.tagit?.tags?.length > 0))
+        .flatMap(a => a.tokens.contents)
+        .map(a => a.data.flags.tagit.tags
             .filter(b => {
                 if (tags.has(b.tag)) {return false;}
                 tags.add(b.tag);
