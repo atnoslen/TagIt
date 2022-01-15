@@ -67,10 +67,6 @@ export class TagItTagManager {
             promises.push(entity.unsetFlag(mod, 'tags'));
         }
 
-        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit)) {
-            promises.push(entity.unsetFlag(mod, 'tags'));
-        }
-
         for (const pack of TagItPackCache.Index) {
             for (const index of pack.items) {
                 const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
@@ -79,6 +75,13 @@ export class TagItTagManager {
             }
         }
 
+        for (const scene of game.scenes.filter(a => a.tokens.size > 0)) {
+            for (const document of scene.tokens.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+                promises.push(document.unsetFlag(mod, 'tags'));
+            }
+        }
+
         await Promise.all(promises);
+        await TagItPackCache.init();
     }
 }
