@@ -753,10 +753,12 @@ export class TagItSearch extends FormApplication {
                 expressions.push(expression);
                 expression = null;
 
-                if (merge) {
-                    expressions.push(merge);
-                    merge = null;
-                }
+                
+            }
+
+            if (merge) {
+                expressions.push(merge);
+                merge = null;
             }
 
             if (tokens.length > 0 && boolOperators.includes(tokens[0])) {
@@ -810,7 +812,7 @@ export class TagItSearch extends FormApplication {
 
             if (Array.isArray(expression)) {
                 // Parentheticals
-                x = TagItSearch.exec(expression);
+                x = TagItSearch.exec(expression, packIndex);
             } else {
                 switch (expression.op) {
                     case 'filter':
