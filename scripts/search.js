@@ -9,6 +9,10 @@ export class TagItSearch extends FormApplication {
     
     constructor(object, options) {
         super(object, options);
+
+        this.searchOptions = {
+            limit:20
+        };
     }
 
     static get defaultOptions() {
@@ -51,10 +55,31 @@ export class TagItSearch extends FormApplication {
 
                 console.log(`TagIt: Search initiated '${searchString}'`);
 
-                const results = await TagItSearch.search(searchString);
+                const results = await TagItSearch.search(searchString, _this.searchOptions);
 
                 _this._renderResults(results.sort((a,b) => a.name.localeCompare(b.name)));
             }
+        });
+
+        
+
+        $(`div.tagit.tag.input button`, html)
+        .on('click', async function() {
+            const searchOptions = await renderTemplate(`modules/${mod}/templates/search-options.html`, _this.searchOptions)
+            new Dialog({
+                title: "Search Options",
+                content: searchOptions,
+                buttons: {
+                    ok: {
+                        label: 'Ok',
+                        callback: async (dialog) => {
+                            _this.searchOptions.limit = $('#search-limit', dialog).val();
+                        }
+                    }
+                },
+                default: 'ok'
+            })
+            .render(true);
         });
 
         $(`#taginput${_this.appId}`, html).focus();
@@ -767,11 +792,22 @@ export class TagItSearch extends FormApplication {
     }
 
     static async search(item, options) {
+        const defaults = {
+            limit: 20
+        };
+        options = $.extend({}, defaults, options || {});
+
         const promise = new Promise(async function(resolve, reject) {
             try {
                 const tokens = TagItSearch.tokenizer(item);
                 const instructions = await TagItSearch.parser(tokens);
-                const results = TagItSearch.exec(instructions, TagItPackCache.Index);
+                let results = TagItSearch
+                .exec(instructions, TagItPackCache.Index)
+                .sort((a,b) => a.name.localeCompare(b.name));
+
+                if (options.limit > 0) {
+                    results = results.slice(0, options.limit);
+                }
 
                 resolve(results);
             } catch (e) {
@@ -787,7 +823,8 @@ let form = null;
 
 Hooks.once("init", function() {
     const partials = [
-        `modules/${mod}/templates/input-partial.html`
+        `modules/${mod}/templates/input-partial.html`,
+        `modules/${mod}/templates/search-options.html`
     ]
 
     console.log(loadTemplates(partials));
