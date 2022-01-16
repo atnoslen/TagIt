@@ -1,5 +1,6 @@
 import { RemoveForm } from './remove.js';
 import { SettingsForm } from './settingsForm.js';
+import { ColorsForm } from './colorsForm.js';
 
 export const modName = 'TagIt!';
 export const mod = 'tagit';
@@ -19,6 +20,32 @@ export class Settings {
      * @memberof Settings
      */
     static registerSettings() {
+        game.settings.register(mod, 'defaultColor', {
+            name: "Default Tag Color",
+            scope: "world",
+            config: false,
+            default: {
+                tag: {
+                    tag: "#8c0000", text: "#ffffff"
+                },
+                document: {
+                    tag: "#ffff00", text: "#000000"
+                }
+                
+            },
+            type: Object
+        });
+
+        game.settings.registerMenu(mod, 'defaultColor', {
+            name: "Default Colors",
+            label: "Colors",
+            title: "Default Colors",
+            hint: "Modify the default colors used",
+            icon: "fas fa-fill-drip",
+            type: ColorsForm,
+            restricted: true
+        });
+
         game.settings.registerMenu(mod, 'settingsMenu', {
             name: "Update Tags",
             label: "Modify",

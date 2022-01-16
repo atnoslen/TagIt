@@ -1,7 +1,6 @@
 import { Settings, mod } from './settings.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
-import { TagItInputManager } from "./inputmanager.js"
 import { EditTag } from "./edittag.js"
 
 export class SettingsForm extends FormApplication {
@@ -37,7 +36,6 @@ export class SettingsForm extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        await TagItPackCache.refresh();
         this.tags = await TagItTagManager.getUsedTags();
 
         data.tags = this.tags;
@@ -57,36 +55,61 @@ export class SettingsForm extends FormApplication {
      */
     async loadTags() {
         const _this = this;
-        await TagItPackCache.refresh();
-        _this.tags = await TagItTagManager.getUsedTags();
+        _this.tags = await TagItTagManager.getUsedTags2();
+        
+        const text = $(`#taginput${_this.appId}`, _this.element)
+        .val()
+        .toLowerCase()
+        .trim();
 
-        const container = $('ol.tagit.search.directory-list', this.element).empty();
+        let tags = _this.tags;
 
-        for (const tag of _this.tags) {
-            container.append(
-                $('<li>')
-                .addClass('directory-item')
-                .addClass('flexrow')
-                .css('display', 'flex')
-                .css('line-height', '32px')
-                .append(
-                    $('<h4>')
-                    .addClass('entry-name')
-                    .append(
-                        $('<a>')
-                        .text(tag)
-                        .on('click', function() {
-                            const data = {
-                                tag: $(this).text(),
-                                onsubmit: function () {
-                                    _this.loadTags();
-                                }
-                            }
-                            const editApp = new EditTag(data).render(true);
-                        })
-                    )
-                )
+        if (text.length > 0) {
+            // Has filter in place
+            tags = tags.filter(a => a.tag.toLowerCase().includes(text));
+        }
+
+        _this.loadContainer(tags);
+    }
+
+    loadContainer(tags) {
+        const _this = this;
+        const container = $('div.tag.collection', _this.element).empty();
+
+        for (const tag of tags) {
+            const span = $('<span>')
+            .addClass('tagit')
+            .addClass('tag')
+            .css('margin','0.2em')
+            .append(
+                $('<a>')
+                .css('cursor','pointer')
+                .text(tag.tag)
+                .on('click', function() {
+                    const data = {
+                        tag: $(this).text(),
+                        onsubmit: function () {
+                            _this.loadTags();
+                        }
+                    }
+                    const editApp = new EditTag(data).render(true);
+                })
             );
+
+            let color = game.settings.get(mod, 'defaultColor').tag;
+
+            if (tag.color) {
+                color = tag.color;
+            }
+
+            $(span)
+            .css({
+                'background-color':color.tag,
+                'border-color':color.tag,
+                'color':color.text
+            });
+
+            container.append(span);
         }
     }
 
@@ -94,9 +117,33 @@ export class SettingsForm extends FormApplication {
         const _this = this;
         super.activateListeners(html);
 
+        $('div.tag.collection', html)
+        .css('flex','auto');
+
         _this.loadTags();
-    
-        $(`#taginput${_this.appId}`, html).focus();
+
+        $(`#taginput${_this.appId}`, html)
+        .on('keyup', function(event) {
+            const text = $(this)
+            .val()
+            .toLowerCase()
+            .trim();
+
+            let tags = _this.tags;
+
+            if (text.length > 0) {
+                tags = tags.filter(a => a.tag.toLowerCase().includes(text));
+            }
+
+            _this.loadContainer(tags);
+
+        })
+        .on('keypress', function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+            }
+        })
+        .focus();
     }
 
     /**

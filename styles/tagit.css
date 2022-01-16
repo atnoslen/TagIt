@@ -19,6 +19,7 @@ div.directory.tagit.search-app {
 
 .tagit.entity-filter {
     text-align: left;
+    line-height: normal;
 }
 
 .tagit.entity-filter input[type=checkbox] {
@@ -76,10 +77,8 @@ span.tagit.tag {
     border: darkred 1px solid;
     background-color: darkred;
     color: white;
-}
-
-span.tagit.tag {
     margin: 0.1em;
+    font-weight: bold;
 }
 
 span.tagit.tag.entity-type {

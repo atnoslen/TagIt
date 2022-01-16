@@ -1,6 +1,7 @@
 import { Settings, mod } from './settings.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
+import { TagItSearch } from './search.js';
 
 export class EditTag extends FormApplication {
     original = '';
@@ -20,7 +21,7 @@ export class EditTag extends FormApplication {
             template: `modules/${mod}/templates/edittag.html`,
             classes: ["sheet"],
             width: 400,
-            height: 124,
+            height: 140,
             closeOnSubmit: true,
             submitOnClose: false,
             resizable: false
@@ -36,7 +37,15 @@ export class EditTag extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        this.original = data.object.tag;
+        this.original = (await TagItSearch.search(data.object.tag, {limit:1}))[0].tags.filter(a => a.tag === data.object.tag)[0];
+
+        if (this.original.color) {
+            data.useDefaultColor = false;
+            data.color = this.original.color;
+        } else {
+            data.useDefaultColor = true;
+            data.color = game.settings.get(mod, 'defaultColor').tag;
+        }
 
         data.owner = game.user.id;
         data.isGM = game.user.isGM;
@@ -83,6 +92,60 @@ export class EditTag extends FormApplication {
             })
             .render(true);
         });
+
+        _this.showHideColorPickers($('input[name=defaultColor]', html).prop('checked'), html);
+
+        $('input[name=defaultColor]', html).on('change', function(e) {
+            _this.showHideColorPickers(this.checked, html);
+
+            _this.updatePreview(html);
+        });
+
+        $('input[name=tagColor]', html).on('input', function(e) {
+            const color = $(this).val();
+            $('div.tag-preview span', html)
+            .css('background-color', color)
+            .css('border-color', color);
+        });
+
+        $('input[name=textColor]', html).on('input', function(e) {
+            const color = $(this).val();
+            $('div.tag-preview span', html)
+            .css('color', color);
+        });
+
+        _this.updatePreview(html);
+    }
+
+    updatePreview(html) {
+        let tag = game.settings.get(mod, 'defaultColor').tag.tag;
+        let text = game.settings.get(mod, 'defaultColor').tag.text;
+
+        if (!$('input[name=defaultColor]', html).prop('checked')) {
+            tag = $('input[name=tagColor]', html).val();
+            text = $('input[name=textColor]', html).val();
+        }
+        
+        $('div.tag-preview span', html)
+        .css({
+            'background-color':tag,
+            'border-color':tag,
+            'color':text
+        });
+    }
+
+    showHideColorPickers(hide, html) {
+        if (hide) {
+            $('input[name=tagColor]', html).hide();
+            $('input[name=textColor]', html).hide();
+            $('label[for=tagColor]', html).hide();
+            $('label[for=textColor]', html).hide();
+        } else {
+            $('input[name=tagColor]', html).show();
+            $('input[name=textColor]', html).show();
+            $('label[for=tagColor]', html).show();
+            $('label[for=textColor]', html).show();
+        }
     }
 
     /**
@@ -94,28 +157,29 @@ export class EditTag extends FormApplication {
      */
     async modifyTags(oldTag, newTag) {
         const promises = [];
-        const packCachePromise = TagItPackCache.refresh();
 
-        for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of game.actors.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.scenes.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of game.items.filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.includes(oldTag))) {
+        for (const entity of game.items.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        await packCachePromise;
+        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
+            promises.push(this.modifyTag(entity, oldTag, newTag));
+        }
 
-        for (const pack of TagItPackCache.index) {
-            for (const index of pack.items.filter(a => a.flags.tagit.tags.includes(oldTag))) {
+        for (const pack of TagItPackCache.Index) {
+            for (const index of pack.items.filter(a => a.flags.tagit.tags.some(a => a.tag === oldTag.tag))) {
                 const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
                 
                 promises.push(this.modifyTag(entity, oldTag, newTag));
@@ -123,6 +187,7 @@ export class EditTag extends FormApplication {
         }
 
         await Promise.all(promises);
+        await TagItPackCache.init();
     }
 
     /**
@@ -137,9 +202,16 @@ export class EditTag extends FormApplication {
         let tags = entity.getFlag(mod, 'tags');
 
         if (newTag) {
-            tags.splice(tags.indexOf(oldTag), 1, newTag);
+            for (const tag of tags.filter(a => a.tag === oldTag.tag)) {
+                tag.tag = newTag.tag;
+                if (newTag.color) {
+                    tag.color = newTag.color;
+                } else if (tag.color) {
+                    delete tag['color'];
+                }
+            }
         } else {
-            tags = tags.filter(a => a !== oldTag);
+            tags = tags.filter(a => a.tag !== oldTag.tag);
         }
         
 
@@ -156,7 +228,13 @@ export class EditTag extends FormApplication {
     async _updateObject(event, data) {
         const _this = this;
 
-        await this.modifyTags(this.original, data.tag);
+        const newTag = { tag: data.tag };
+
+        if (!data.defaultColor) {
+            newTag.color = {tag: data.tagColor, text: data.textColor};
+        }
+
+        await this.modifyTags(this.original, newTag);
 
         if (_this.data.object.onsubmit) {
             _this.data.object.onsubmit();

@@ -1,31 +1,13 @@
 <form style="height:100%; overflow:hidden;">
     <div class="directory flexcol tagit search-app">
-        <header class="directory-header flexrow">
-            <div class="header-search flexrow" style="flex-basis: 100%;">
-                <i class="fas fa-search"></i>
-                <input type="text" list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
-                <button class="tagit search refresh" type="button"><i class="fas fa-redo center"></i></button>
+        <header class="directory-header flexcol">
+            <div class="tagit input">
+                <div class="tagit tag input">
+                    <i class="fas fa-search" style="align-self:center;"></i>
+                    <input type="text" id="taginput{{appId}}" name="taginput{{appId}}" placeholder="Search Tag" autocomplete="off" />
+                    <button type="button" style="flex-basis:content;"><i class="fas fa-cog" style="margin:0 4px;"></i></button>
+                </div>
             </div>
-            <datalist id="tagcache{{appId}}">
-            </datalist>
-            <div class="tagit entity-filter">
-                <label for="journalentries">
-                    <input type="checkbox" id="journalentries" name="JournalEntry" checked>Journals
-                </label>
-                <label for="actors">
-                    <input type="checkbox" id="actors" name="Actor" checked>Actors
-                </label>
-                <label for="items">
-                    <input type="checkbox" id="items" name="Item" checked>Items
-                </label>
-                <label for="tokens">
-                    <input type="checkbox" id="tokens" name="Token" checked>Tokens
-                </label>
-                <label for="packs">
-                    <input type="checkbox" id="packs" name="Pack" checked>Compendiums
-                </label>
-            </div>
-            <div class="tagit collection" style="flex-basis:100%"></div>
         </header>
         <ol class="tagit search directory-list">
         </ol>

@@ -11,7 +11,8 @@
         "./scripts/packcache.js"
   ],
   "styles": [
-    "./styles/tagit.css"
+    "./styles/tagit.css",
+    "./styles/input.css"
   ],
   "url": "https://github.com/atnoslen/TagIt",
   "manifest": "https://github.com/TagIt/releases/latest/download/module.json",

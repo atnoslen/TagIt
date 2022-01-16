@@ -2,7 +2,7 @@ import { Settings, mod } from "./settings.js";
 import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
-import { TagItInputManager } from "./inputmanager.js"
+import { TagItInput } from "./input.js";
 
 class TagIt extends FormApplication {
 
@@ -25,8 +25,8 @@ class TagIt extends FormApplication {
     static get defaultOptions() {
         const options = super.defaultOptions;
         options.template = `modules/${mod}/templates/template.html`;
-        options.width = '600';
-        options.height = '700';
+        options.width = '400';
+        options.height = '250';
         options.classes = ['tagit', 'sheet'];
         options.title = game.i18n.localize('TagIt.label');
         options.resizable = true;
@@ -36,8 +36,6 @@ class TagIt extends FormApplication {
 
     async getData() {
         const data = super.getData();
-
-        await TagItPackCache.refresh();
 
         this.tags = this.entity.getFlag(mod, 'tags');
 
@@ -61,11 +59,11 @@ class TagIt extends FormApplication {
     activateListeners(html) {
         const _this = this;
         super.activateListeners(html);
-
+        
         if (_this.readOnlyTags) {
             // Render read only version for tags.
             _this.readOnlyTags.forEach(tag => {
-                TagItInputManager.addtag(tag, _this, {
+                TagItInput.addtag(tag, _this, {
                     updateAutocomplete: false,
                     readonly: true
                 });
@@ -74,42 +72,34 @@ class TagIt extends FormApplication {
 
         if (_this.tags) {
             _this.tags.forEach(tag => {
-                TagItInputManager.addtag(tag, _this, {
+                TagItInput.addtag(tag, _this, {
                     updateAutocomplete: false
                 });
             });
         }
 
-        TagItInputManager.calculateAutocompleteList(_this);
-    
-        $(`#taginput${_this.appId}`, html).on('input', function (event) {
-            if(!(event.originalEvent instanceof InputEvent) || event.originalEvent.inputType === 'insertReplacementText') {
-                // Selected a tag from dropdown
-                TagItInputManager.addtag(this.value, _this);
-            }
-        });
-    
-        $(`#taginput${_this.appId}`, html).on('keypress', function(event) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
-    
-                TagItInputManager.addtag($(`#taginput${_this.appId}`, html).val(), _this);
-            }
-        });
-    
-        $(`#taginput${_this.appId}`, html).focus();
+        TagItInput.calculateAutocompleteList(_this);
+        TagItInput.registerListeners(_this);
     }
     
     async _updateObject(event, formData) {
         if (game.user.isGM) {
-            const collection = $('div.tagit.collection', this.element);
+            const collection = $('div.tag.collection', this.element);
 
-            const items = $('span.tag', collection)
+            const items = $('span.tagit.tag', collection)
             .map(function() {
                 if ($('i.fa-times-circle', this).length > 0) {
-                    return $(this).text();
+                    return TagItInput.spanToTag($(this));
                 }
-            }).get().sort();
+            }).get().sort((a,b) => {
+                const comp = a.tag.localeCompare(b.tag);
+                if (comp === 0) {
+                    // Sort values
+                    return a.value - b.value;
+                } else {
+                    return comp;
+                }
+            });
 
             let entity = this.entity;
 
@@ -152,6 +142,105 @@ class TagIt extends FormApplication {
             openBtn.insertAfter(titleElement);
         }
     }
+
+    static async migrateFrom02() {
+        console.log(`TagIt!: Migrating from v0.2...`);
+
+        const promises = [];
+
+        for (const document of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        for (const document of game.scenes.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        for (const document of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        for (const document of game.items.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+            const tags = document.getFlag('tagit','tags');
+
+            for (let i = 0; i < tags.length; i++) {
+                if (typeof tags[i] === 'string') {
+                    tags[i] = { tag: tags[i]};
+                }
+            }
+
+            promises.push(document.setFlag('tagit','tags',tags));
+        }
+
+        const index = await TagItPackCache._getPacksWithTagsIndex(
+            TagItPackCache._getPackIndexPromises()
+        );
+
+        for (const pack of index.filter(a => a.items.some(b => b.flags.tagit.tags.some(c => typeof c === 'string')))) {
+            for (const index of pack.items) {
+                const document = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
+            
+                const tags = document.getFlag('tagit','tags');
+                for (let i = 0; i < tags.length; i++) {
+                    if (typeof tags[i] === 'string') {
+                        tags[i] = { tag: tags[i]};
+                    }
+                }
+
+                promises.push(document.setFlag('tagit','tags',tags));
+            }
+        }
+
+        for (const scene of game.scenes.filter(a => a.tokens.size > 0)) {
+            for (const document of scene.tokens.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+                const tags = document.getFlag('tagit','tags');
+
+                for (let i = 0; i < tags.length; i++) {
+                    if (typeof tags[i] === 'string') {
+                        tags[i] = { tag: tags[i]};
+                    }
+                }
+
+                promises.push(document.setFlag('tagit', 'tags', tags));
+            }
+        }
+
+        await Promise.all(promises);
+
+        if (promises.length > 0) {
+            await TagItPackCache.init();
+        }
+
+        
+
+        console.log(`TagIt!: Migrated ${promises.length} documents.`);
+
+        console.log(`TagIt!: Done migrating.`);
+    }
 }
 
 Hooks.on('renderJournalSheet', (app, html, data) => {
@@ -165,11 +254,17 @@ Hooks.on('renderItemSheet', (app, html, data) => {
     TagIt._initEntityHook(app, html, data);
 });
 
+Hooks.on('renderSceneConfig', (app, html, data) => {
+    TagIt._initEntityHook(app, html, data);
+});
+
 Hooks.once('ready', async () => {
     Settings.registerSettings();
 
     game.modules.get(mod).api = {
-        search: TagItSearch.getResults,
+        search: TagItSearch.search,
         packCache: TagItPackCache
     };
+
+    await TagIt.migrateFrom02();
 });

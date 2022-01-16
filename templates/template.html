@@ -1,13 +1,4 @@
 
 <form>
-    <div style="margin-bottom:1em;">
-        <input list="tagcache{{appId}}" id="taginput{{appId}}" name="taginput{{appId}}" autocomplete="off"/>
-    </div>
-    <div id="tags-collection" class="tagit collection">
-    </div>
-    <datalist id="tagcache{{appId}}">
-    {{#each tagcache}}
-        <option value="{{this}}">
-    {{/each}}
-    </datalist>
+    {{> 'modules/tagit/templates/input-partial.html' this}}
 </form>
