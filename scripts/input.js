@@ -100,7 +100,7 @@ export class TagItInput {
             throw "Invalid tag - Too many ':'"
         };
 
-        return (num.length == 2) ? { tag: num[0], value: num[1] } : { tag: num[0] };
+        return (num.length == 2) ? { tag: num[0], value: parseInt(num[1]) } : { tag: num[0] };
     }
 
     static textToTagLowerCase(text) {
