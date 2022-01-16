@@ -758,7 +758,7 @@ export class TagItSearch extends FormApplication {
 
                 expression.token = function(collection) {
                     return collection
-                    .filter(document => tokenFilter(document))
+                    .filter(document => !document.isLinked && tokenFilter(document))
                     .map(document => tokenMap(document));
                 }
             }
