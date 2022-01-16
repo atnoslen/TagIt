@@ -332,7 +332,7 @@ export class TagItSearch extends FormApplication {
                         // start = 1
                         // end = index - 1
                         tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
-                    } else {
+                    } else if (index == 0) {
                         sQuote = true;
                     }
 
@@ -353,7 +353,7 @@ export class TagItSearch extends FormApplication {
                         // end = index - 1
 
                         tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
-                    } else {
+                    } else if (index == 0) {
                         dQuote = true;
                     }
 
