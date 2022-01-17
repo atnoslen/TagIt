@@ -107,11 +107,29 @@ class TagIt extends FormApplication {
                 entity = this.entity.token;
             }
 
+            let numTags = 0;
+            const originalTags = entity.getFlag(mod, 'tags');
+
+            if (originalTags) {
+                numTags = originalTags.length;
+            }
+
             if (items.length > 0) {
                 await entity.setFlag(mod, 'tags', items);
             } else {
                 await entity.unsetFlag(mod, 'tags');
             }
+
+            numTags = items.length - numTags;
+            if (numTags > 0) {
+                // Added
+
+                ui.notifications.info(`Added ${numTags} tag${(numTags == 1) ? '' : 's'} to ${entity.name}`);
+            } else if (numTags < 0) {
+                // Removed
+                ui.notifications.info(`Removed ${numTags * -1} tag${(numTags == -1) ? '' : 's'} from ${entity.name}`);
+            }
+            
 
             this.render();
         } else {

@@ -191,6 +191,7 @@ export class EditTag extends FormApplication {
         await Promise.all(promises);
         await TagItPackCache.init();
 
+        ui.notifications.info(`Updated ${promises.length} documents with tag ${oldTag.tag}`);
         console.log(`TagIt: Updated ${promises.length} documents with tag ${oldTag.tag}`);
     }
 

@@ -76,27 +76,27 @@ export class TagItTagManager {
     static async removeAll() {
         const promises = [];
 
-        for (const entity of game.journal.filter(a => a.data.flags?.tagit)) {
-            promises.push(entity.unsetFlag(mod, 'tags'));
+        for (const document of game.journal.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+            promises.push(document.unsetFlag(mod, 'tags'));
         }
 
-        for (const entity of game.scenes.filter(a => a.data.flags?.tagit)) {
-            promises.push(entity.unsetFlag(mod, 'tags'));
+        for (const document of game.scenes.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+            promises.push(document.unsetFlag(mod, 'tags'));
         }
 
-        for (const entity of game.actors.filter(a => a.data.flags?.tagit)) {
-            promises.push(entity.unsetFlag(mod, 'tags'));
+        for (const document of game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+            promises.push(document.unsetFlag(mod, 'tags'));
         }
 
-        for (const entity of game.items.filter(a => a.data.flags?.tagit)) {
-            promises.push(entity.unsetFlag(mod, 'tags'));
+        for (const document of game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+            promises.push(document.unsetFlag(mod, 'tags'));
         }
 
         for (const pack of TagItPackCache.TagIndex) {
             for (const index of pack.items) {
-                const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
+                const document = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
                 
-                promises.push(entity.unsetFlag(mod, 'tags'));
+                promises.push(document.unsetFlag(mod, 'tags'));
             }
         }
 
@@ -108,5 +108,7 @@ export class TagItTagManager {
 
         await Promise.all(promises);
         await TagItPackCache.init();
+
+        ui.notifications.info(`Removed tags from ${promises.length} documents.`);
     }
 }
