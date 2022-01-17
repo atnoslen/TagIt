@@ -4,8 +4,6 @@ import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
 
 export class TagItSearch extends FormApplication {
-
-    tagcache = null;
     
     constructor(object, options) {
         super(object, options);
@@ -32,9 +30,9 @@ export class TagItSearch extends FormApplication {
         const _this = this;
         const data = super.getData();
 
-        _this.tagcache = await TagItTagManager.getUsedTags();
+        // _this.tagcache = await TagItTagManager.getUsedTags();
 
-        data.tagcache = _this.tagcache;
+        // data.tagcache = _this.tagcache;
         data.appId = this.appId;
 
         return data;
@@ -539,7 +537,7 @@ export class TagItSearch extends FormApplication {
                 id: index._id,
                 name: index.name,
                 type: pack.type,
-                tags: index.flags.tagit.tags,
+                tags: index.flags?.tagit?.tags,
                 pack: `${pack.pack}.${pack.name}`,
                 img: (pack.type === "Scene") ? index.thumb : index.img
             }

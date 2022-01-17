@@ -37,7 +37,7 @@ export class EditTag extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        this.original = (await TagItSearch.search(data.object.tag, {limit:1}))[0].tags.filter(a => a.tag === data.object.tag)[0];
+        this.original = Object.assign({}, (await TagItSearch.search(data.object.tag, {limit:1}))[0].tags.filter(a => a.tag === data.object.tag)[0]);
 
         if (this.original.color) {
             data.useDefaultColor = false;
@@ -178,7 +178,7 @@ export class EditTag extends FormApplication {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const pack of TagItPackCache.Index) {
+        for (const pack of TagItPackCache.TagIndex) {
             for (const index of pack.items.filter(a => a.flags.tagit.tags.some(a => a.tag === oldTag.tag))) {
                 const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
                 
@@ -186,8 +186,12 @@ export class EditTag extends FormApplication {
             }
         }
 
+        
+
         await Promise.all(promises);
         await TagItPackCache.init();
+
+        console.log(`TagIt: Updated ${promises.length} documents with tag ${oldTag.tag}`);
     }
 
     /**

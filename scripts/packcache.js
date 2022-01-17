@@ -42,10 +42,13 @@ export class TagItPackCache {
         for (const pack of indexes) {
             const index = await pack.index;
     
-            var packsWithTags = index.filter(b => b.flags?.tagit?.tags?.length > 0);
+            //var packsWithTags = index.filter(b => b.flags?.tagit?.tags?.length > 0);
+            
         
-            if (packsWithTags.length > 0) {
-                packs[`${pack.pack}.${pack.name}`] = {pack: pack.pack, name: pack.name, type: pack.type, items: packsWithTags};
+            //if (packsWithTags.length > 0) {
+            if (index.contents.length > 0) {
+                //packs[`${pack.pack}.${pack.name}`] = {pack: pack.pack, name: pack.name, type: pack.type, items: packsWithTags};
+                packs[`${pack.pack}.${pack.name}`] = {pack: pack.pack, name: pack.name, type: pack.type, items: index.contents};
             }
         }
     
@@ -85,6 +88,19 @@ export class TagItPackCache {
         return Object.values(TagItPackCache._index);
     }
 
+    static get TagIndex() {
+        return Object.values(TagItPackCache._index)
+        .filter(a => a.items.some(b => b.flags?.tagit?.tags?.length >0))
+        .map(a => {
+            return {
+                name: a.name,
+                pack: a.pack,
+                type: a.type,
+                items: a.items.filter(b => b.flags?.tagit?.tags?.length > 0)
+            };
+        });
+    }
+
     static async init() {
         const promises = TagItPackCache._getPackIndexPromises();
 
@@ -98,7 +114,7 @@ export class TagItPackCache {
             pack: compendium.metadata.package,
             name: compendium.metadata.name,
             type: compendium.documentName,
-            items: index.filter(a => a.flags?.tagit?.tags?.length > 0)
+            items: index
         }
         console.log(`TagIt: Refreshed index for compendium ${compendium.metadata.package}.${compendium.metadata.name}`)
     }

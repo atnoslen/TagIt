@@ -178,8 +178,8 @@ export class TagItInput {
         const dataList = $(`datalist#tagcache${form.appId}`, form.element);
         dataList.empty();
     
-        $.each(form.tagcache.filter(a => !tags.includes(a.toLowerCase())), function (index, value) {
-            dataList.append($('<option>').val(value));
+        $.each(form.tagcache.filter(a => !tags.includes(a.tag.toLowerCase())), function (index, value) {
+            dataList.append($('<option>').val(value.tag));
         });
     }
 

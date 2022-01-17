@@ -36,9 +36,9 @@ export class SettingsForm extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        this.tags = await TagItTagManager.getUsedTags();
+        //this.tags = await TagItTagManager.getUsedTags2();
 
-        data.tags = this.tags;
+        //data.tags = this.tags;
         data.owner = game.user.id;
         data.isGM = game.user.isGM;
         data.appId = this.appId;
@@ -55,7 +55,7 @@ export class SettingsForm extends FormApplication {
      */
     async loadTags() {
         const _this = this;
-        _this.tags = await TagItTagManager.getUsedTags2();
+        _this.tags = await TagItTagManager.getUsedTags();
         
         const text = $(`#taginput${_this.appId}`, _this.element)
         .val()
