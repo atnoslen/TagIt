@@ -102,9 +102,15 @@ export class TagItPackCache {
     }
 
     static async init() {
+        const t0 = performance.now();
         const promises = TagItPackCache._getPackIndexPromises();
 
         TagItPackCache._index = await TagItPackCache._getPacksWithTagsIndex2(promises);
+
+        const t1 = performance.now();
+
+        console.log(`PackCache build took ${t1 - t0} milliseconds for ${TagItPackCache._index.length} documents.`);
+
     }
 
     static async updateCompendiumCache(compendium) {
@@ -127,5 +133,5 @@ Hooks.on('updateCompendium', (app, html, data) => {
 });
 
 Hooks.once('ready', async () => {
-    TagItPackCache.init();
+    
 });
