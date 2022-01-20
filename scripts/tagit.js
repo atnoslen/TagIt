@@ -3,6 +3,7 @@ import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
+import { TagItIndex } from "./index.js";
 
 class TagIt extends FormApplication {
 
@@ -281,8 +282,17 @@ Hooks.once('ready', async () => {
 
     game.modules.get(mod).api = {
         search: TagItSearch.search,
-        packCache: TagItPackCache
+        packCache: TagItPackCache,
+        index: TagItIndex
     };
 
     await TagIt.migrateFrom02();
+
+    
+    await TagItPackCache.init();
+    await TagItIndex.init();
+
+    
+
+    
 });
