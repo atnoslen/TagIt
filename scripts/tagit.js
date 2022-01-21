@@ -280,10 +280,13 @@ Hooks.on('renderSceneConfig', (app, html, data) => {
 Hooks.once('ready', async () => {
     Settings.registerSettings();
 
+    
+
     game.modules.get(mod).api = {
         search: TagItSearch.search,
         packCache: TagItPackCache,
-        index: TagItIndex
+        index: TagItIndex,
+        search2: TagItSearch.search2
     };
 
     await TagIt.migrateFrom02();

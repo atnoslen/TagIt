@@ -1,5 +1,3 @@
-
-
 export class TagItIndex {
     static _index = new Array();
     
@@ -35,7 +33,7 @@ export class TagItIndex {
                     return {
                         id: document.id,
                         name: document.name,
-                        type: document.documentName,
+                        documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
                             document.data.flags.tagit.tags :
                             [],
@@ -50,7 +48,7 @@ export class TagItIndex {
                     return {
                         id: document.id,
                         name: document.name,
-                        type: document.documentName,
+                        documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
                             document.data.flags.tagit.tags :
                             [],
@@ -65,7 +63,7 @@ export class TagItIndex {
                     return {
                         id: document.id,
                         name: document.name,
-                        type: document.documentName,
+                        documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
                             document.data.flags.tagit.tags :
                             [],
@@ -80,7 +78,7 @@ export class TagItIndex {
                     return {
                         id: document.id,
                         name: document.name,
-                        type: document.documentName,
+                        documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
                             document.data.flags.tagit.tags :
                             [],
@@ -100,7 +98,7 @@ export class TagItIndex {
                         return {
                             id: document._id,
                             name: document.name,
-                            type: compendium.documentName,
+                            documentName: compendium.documentName,
                             tags: (document.flags?.tagit?.tags?.length > 0) ?
                                 document.flags.tagit.tags :
                                 [],
@@ -124,5 +122,9 @@ export class TagItIndex {
         });
 
         return promise;
+    }
+
+    static get Index() {
+        return TagItIndex._index;
     }
 }

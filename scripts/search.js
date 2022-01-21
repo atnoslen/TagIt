@@ -2,6 +2,7 @@ import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
+import { TagItIndex } from "./index.js";
 
 export class TagItSearch extends FormApplication {
     
@@ -815,6 +816,240 @@ export class TagItSearch extends FormApplication {
         return expressions;
     }
 
+    static async parser2(tokens) {
+        let expressions = [];
+
+        let merge = null;
+
+        const operators = [':','=','<','<=','>','>='];
+        const boolOperators = ['&&','||'];
+
+        const tokenMap = function(document) {
+            return {
+                id: document.id,
+                name: document.name,
+                type: document.documentName,
+                tags: [...new Set([].concat(document.data.flags?.tagit?.tags, document.actor?.data?.flags?.tagit?.tags))]
+                .filter(item => item !== undefined)
+                .sort(),
+                document: document,
+                img: document.data.img
+            }
+        }
+
+        while (tokens.length) {
+            const item = tokens.shift();
+
+            let expression = null;
+            let filter = null;
+            let tokenFilter = null;
+
+            if (Array.isArray(item)) {
+                // Recurse
+                expressions.push(await TagItSearch.parser2(item));
+            } else if (operators.includes(tokens[0])) {
+                // Next token is an operator
+                let op = tokens.shift();
+                const value = tokens.shift();
+                switch (item) {
+                    case 'n':
+                    case 'name':
+                        // Looking for a name
+                        filter = function (document) {
+                            return document.name.toLowerCase().includes(value.toLowerCase())
+                        }
+
+                        tokenFilter = filter;
+
+                        expression = {
+                            op: "filter"
+                        };
+                        break;
+                    case 't':
+                    case 'type':
+                    case 'document-type':
+                        // Filtering an entity
+                        let doc = value.toLowerCase();
+
+                        switch(doc) {
+                            case "journal":
+                            case "j":
+                                doc = "journalentry";
+                                break;
+                            case "a":
+                                doc = "actor";
+                                break;
+                            case "i":
+                                doc = "item";
+                                break;
+                            case "s":
+                                doc = "scene";
+                                break;
+                            case "t":
+                                doc = "token";
+                                break;
+                            case "compendium":
+                            case "pack":
+                            case "c":
+                                doc = "compendium";
+                                break;
+                        }
+
+                        expression =  {
+                            op: "doc-filter"
+                        }
+
+                        if (doc === "compendium") {
+                            filter = function(document) {
+                                return document.compendium;
+                            }
+    
+                            tokenFilter = filter;
+                        } else {
+                            filter = function(document) {
+                                return document.documentName.toLowerCase() == doc;
+                            }
+    
+                            tokenFilter = filter;
+                        }
+
+                        break;
+                    case 'tag':
+                        // Looking for a tag
+
+                        filter = function(document) {
+                            return document.tags.some(tag => tag.tag === value);
+                        }
+
+                        tokenFilter = function(document) {
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === value) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === value);
+                        }
+
+                        expression = {
+                            op: "filter"
+                        };
+                        break;
+                    default:
+                        // Tag with value
+
+                        let valueExpr = null;
+
+                        switch (op) {
+                            case ":":
+                            case "=":
+                                valueExpr = function (tag) { return tag.value == value; }
+                                break;
+                            case ">":
+                                valueExpr = function (tag) { return tag.value > value; }
+                                break;
+                            case ">=":
+                                valueExpr = function (tag) { return tag.value >= value; }
+                                break;
+                            case "<":
+                                valueExpr = function (tag) { return tag.value < value; }
+                                break;
+                            case "<=":
+                                valueExpr = function (tag) { return tag.value <= value; }
+                                break;
+                        }
+
+                        filter = function (document) {
+                            return document.tags.some(tag => tag.tag === item && valueExpr(tag))
+                        }
+
+                        tokenFilter = function(document) {
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag)) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag));
+                        }
+
+                        expression =  {
+                            op: "filter"
+                        }
+
+                        break;
+                }
+            } else {
+                // No operator
+                filter = function(document) {
+                    return document.tags.some(tag => tag.tag === item);
+                }
+
+                tokenFilter = function(document) {
+                    return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item) ||
+                    document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item);
+                }
+
+
+                expression = {
+                    op: "filter"
+                }
+            }
+
+            if (expression && filter) {
+                expression.document = function(collection) {
+                    return collection
+                    .filter(document => filter(document));
+                };
+
+                expression.token = function(collection) {
+                    return collection
+                    .filter(document => !document.isLinked && tokenFilter(document));
+                }
+            }
+
+            if (expression) {
+                // Have a filter expression
+
+                expressions.push(expression);
+                expression = null;
+            }
+
+            if (merge) {
+                expressions.push(merge);
+                merge = null;
+            }
+
+            if (tokens.length > 0 && boolOperators.includes(tokens[0])) {
+                // Next operand is a bool operator
+                switch (tokens.shift()) {
+                    case "&&":
+                        merge = {
+                            op: "merge",
+                            func: function (a, b) {
+                                return a.filter(A => b.some(B => A.id === B.id && A.name === B.name && A.type === B.type));
+                            }
+                        }
+                        break;
+                    case "||":
+                        merge = {
+                            op: "merge",
+                            func: function (a, b) {
+                                return [...a, ...b]
+                                .filter((A, pos, arr) =>
+                                  arr.findIndex(B => A.id === B.id && A.name === B.name && A.type === B.type) == pos
+                                );
+                            }
+                        }
+                        break;
+                }
+                
+            } else if (tokens.length > 0) {
+                // Next operator is not a bool operator
+                // Assume &&
+                merge = {
+                    op: "merge",
+                    func: function (a, b) {
+                        return a.filter(A => b.some(B => A.id === B.id));
+                    }
+                }
+            }
+
+        }
+
+        return expressions;
+    }
+
     static exec(et, packIndex) {
         let a = null;
         let b = null;
@@ -859,6 +1094,43 @@ export class TagItSearch extends FormApplication {
         return a;
     }
 
+    static exec2(et) {
+        let a = null;
+        let b = null;
+        let x = null;
+
+
+        while(et.length > 0) {
+            const expression = et.shift();
+
+            if (Array.isArray(expression)) {
+                // Parentheticals
+                x = TagItSearch.exec2(expression);
+            } else {
+                x = [];
+                switch (expression.op) {
+                    case 'filter':
+                    case 'doc-filter':
+                        x.push(...expression.document(TagItIndex.Index));
+                        x.push(...expression.token(canvas.tokens.getDocuments()))
+    
+                        break;
+                    case 'merge':
+                        a = expression.func(a, b);
+                        break;
+                }
+            }
+
+            if (a) {
+                b = x;
+            } else {
+                a = x;
+            }
+        }
+        
+        return a;
+    }
+
     static async search(item, options) {
         const defaults = {
             limit: 20
@@ -871,6 +1143,33 @@ export class TagItSearch extends FormApplication {
                 const instructions = await TagItSearch.parser(tokens);
                 let results = TagItSearch
                 .exec(instructions, TagItPackCache.Index)
+                .sort((a,b) => a.name.localeCompare(b.name));
+
+                if (options.limit > 0) {
+                    results = results.slice(0, options.limit);
+                }
+
+                resolve(results);
+            } catch (e) {
+                reject(e);
+            }
+        });
+
+        return promise;
+    }
+
+    static async search2(item, options) {
+        const defaults = {
+            limit: 20
+        };
+        options = $.extend({}, defaults, options || {});
+
+        const promise = new Promise(async function(resolve, reject) {
+            try {
+                const tokens = TagItSearch.tokenizer(item);
+                const instructions = await TagItSearch.parser2(tokens);
+                let results = TagItSearch
+                .exec2(instructions)
                 .sort((a,b) => a.name.localeCompare(b.name));
 
                 if (options.limit > 0) {
