@@ -131,7 +131,7 @@ export class TagItIndex {
 
 for (const document of TagItIndex.DocumentTypes) {
     Hooks.on(`create${document}`, (app, html, data) => {
-        TagItIndex._index.push({
+        const newDocument = {
             id: app.id,
             name: app.name,
             documentName: app.documentName,
@@ -140,7 +140,13 @@ for (const document of TagItIndex.DocumentTypes) {
                 [],
             document: app,
             img: (app.documentName === "Scene") ? app.thumb : app.img
-        });
+        };
+
+        if (app.pack) {
+            newDocument.compendium = app.pack;
+        }
+        
+        TagItIndex._index.push(newDocument);
     });
     
     Hooks.on(`update${document}`, (app, html, data) => {
@@ -166,7 +172,3 @@ for (const document of TagItIndex.DocumentTypes) {
         TagItIndex._index.splice(index, 1);
     });
 }
-
-Hooks.on('updateCompendium', (app, html, data) => {
-
-});
