@@ -478,7 +478,7 @@ export class TagItSearch extends FormApplication {
             return {
                 id: document.id,
                 name: document.name,
-                type: document.documentName,
+                documentName: document.documentName,
                 tags: [...new Set([].concat(document.data.flags?.tagit?.tags, document.actor?.data?.flags?.tagit?.tags))]
                 .filter(item => item !== undefined)
                 .sort(),
@@ -644,7 +644,8 @@ export class TagItSearch extends FormApplication {
 
                 expression.token = function(collection) {
                     return collection
-                    .filter(document => !document.isLinked && tokenFilter(document));
+                    .filter(document => !document.isLinked && tokenFilter(document))
+                    .map(token => tokenMap(token));
                 }
             }
 
