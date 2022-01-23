@@ -29,7 +29,9 @@ export class TagItIndex {
             });
 
             index.push(
-                ...game.journal.map(document => {
+                ...game.journal
+                .filter(document => document.permission > 0)
+                .map(document => {
                     return {
                         id: document.id,
                         name: document.name,
@@ -44,7 +46,9 @@ export class TagItIndex {
             );
 
             index.push(
-                ...game.scenes.map(document => {
+                ...game.scenes
+                .filter(document => document.permission > 0)
+                .map(document => {
                     return {
                         id: document.id,
                         name: document.name,
@@ -59,7 +63,9 @@ export class TagItIndex {
             );
 
             index.push(
-                ...game.actors.map(document => {
+                ...game.actors
+                .filter(document => document.permission > 0)
+                .map(document => {
                     return {
                         id: document.id,
                         name: document.name,
@@ -74,7 +80,9 @@ export class TagItIndex {
             );
 
             index.push(
-                ...game.items.map(document => {
+                ...game.items
+                .filter(document => document.permission > 0)
+                .map(document => {
                     return {
                         id: document.id,
                         name: document.name,
@@ -94,7 +102,8 @@ export class TagItIndex {
                 const compendiumIndex = await compendium.index;
 
                 index.push(
-                    ...compendiumIndex.contents.map(document => {
+                    ...compendiumIndex.contents
+                    .map(document => {
                         return {
                             id: document._id,
                             name: document.name,
