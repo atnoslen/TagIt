@@ -156,8 +156,10 @@ for (const document of TagItIndex.DocumentTypes) {
             index.name == html.name;
         }
 
-        if (html.flags?.tagit) {
-            index.flags.tagit = html.flags.tagit;
+        if (html.flags?.tagit?.tags?.length > 0) {
+            index.tags = html.flags.tagit.tags;
+        } else {
+            index.tags = [];
         }
 
         if (app.documentName === "Scene" && html.thumb !== undefined) {
