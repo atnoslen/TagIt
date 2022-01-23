@@ -481,7 +481,7 @@ export class TagItSearch extends FormApplication {
                 documentName: document.documentName,
                 tags: [...new Set([].concat(document.data.flags?.tagit?.tags, document.actor?.data?.flags?.tagit?.tags))]
                 .filter(item => item !== undefined)
-                .sort(),
+                .sort((a,b) => a.tag.localeCompare(b.tag)),
                 document: document,
                 img: document.data.img
             }
