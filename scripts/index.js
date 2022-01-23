@@ -38,7 +38,7 @@ export class TagItIndex {
                             document.data.flags.tagit.tags :
                             [],
                         document: document,
-                        img: document.img
+                        img: document.data.img
                     };
                 })
             );
@@ -68,7 +68,7 @@ export class TagItIndex {
                             document.data.flags.tagit.tags :
                             [],
                         document: document,
-                        img: document.img
+                        img: document.data.img
                     };
                 })
             );
@@ -83,7 +83,7 @@ export class TagItIndex {
                             document.data.flags.tagit.tags :
                             [],
                         document: document,
-                        img: document.img
+                        img: document.data.img
                     };
                 })
             );
@@ -128,3 +128,45 @@ export class TagItIndex {
         return TagItIndex._index;
     }
 }
+
+for (const document of TagItIndex.DocumentTypes) {
+    Hooks.on(`create${document}`, (app, html, data) => {
+        TagItIndex._index.push({
+            id: app.id,
+            name: app.name,
+            documentName: app.documentName,
+            tags: (app.data.flags?.tagit?.tags?.length > 0) ?
+                app.data.flags.tagit.tags :
+                [],
+            document: app,
+            img: (app.documentName === "Scene") ? app.thumb : app.img
+        });
+    });
+    
+    Hooks.on(`update${document}`, (app, html, data) => {
+        const index = TagItIndex._index.find(a => a.id === app.id && a.documentName === app.documentName);
+
+        if (html.name) {
+            index.name == html.name;
+        }
+
+        if (html.flags?.tagit) {
+            index.flags.tagit = html.flags.tagit;
+        }
+
+        if (app.documentName === "Scene" && html.thumb !== undefined) {
+            index.img = html.thumb;
+        } else if (html.img !== undefined) {
+            index.img = html.img;
+        }
+    });
+    
+    Hooks.on(`delete${document}`, (app, html, data) => {
+        const index = TagItIndex._index.findIndex(a => a.id === app.id && a.documentName === app.documentName);
+        TagItIndex._index.splice(index, 1);
+    });
+}
+
+Hooks.on('updateCompendium', (app, html, data) => {
+
+});
