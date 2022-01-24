@@ -473,7 +473,9 @@ export class TagItSearch extends FormApplication {
         't',
         'type',
         'document-type',
-        'tag'
+        'tag',
+        'meta',
+        'm'
     ]
 
     static async parser(tokens) {
@@ -578,12 +580,27 @@ export class TagItSearch extends FormApplication {
                         // Looking for a tag
 
                         filter = function(document) {
-                            return document.tags.some(tag => tag.tag === value);
+                            return document.tags.some(tag => tag.tag.toLowerCase() === value.toLowerCase());
                         }
 
                         tokenFilter = function(document) {
-                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === value) ||
-                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === value);
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === value.toLowerCase()) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === value.toLowerCase());
+                        }
+
+                        expression = {
+                            op: "filter"
+                        };
+                        break;
+                    case 'meta':
+                    case 'm':
+                        filter = function(document) {
+                            return document.tags.some(tag => tag.meta && tag.meta.toLowerCase() === value.toLowerCase());
+                        }
+
+                        tokenFilter = function(document) {
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.meta && tag.meta.toLowerCase() === value.toLowerCase()) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.meta && tag.meta.toLowerCase() === value.toLowerCase());
                         }
 
                         expression = {

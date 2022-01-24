@@ -22,7 +22,7 @@ export class TagItInput {
             tag = { tag: $.trim($(`#taginput${form.appId}`, form.element).val()) };
         }
 
-        if (TagItSearch.reservedTokens.includes(tag.tag.toLowerCase())) {
+        if (!tag.meta && TagItSearch.reservedTokens.includes(tag.tag.toLowerCase())) {
             ui.notifications.error("Invalid tag - Reserved Token");
             throw "Invalid tag - Reserved Token"
         }
