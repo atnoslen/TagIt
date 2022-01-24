@@ -55,7 +55,9 @@ export class SettingsForm extends FormApplication {
      */
     async loadTags() {
         const _this = this;
-        _this.tags = await TagItTagManager.getUsedTags();
+        //_this.tags = await TagItTagManager.getUsedTags();
+
+        _this.tags = TagItTagManager.getUsedTagsWithMeta();
         
         const text = $(`#taginput${_this.appId}`, _this.element)
         .val()
@@ -77,6 +79,7 @@ export class SettingsForm extends FormApplication {
         const container = $('div.tag.collection', _this.element).empty();
 
         for (const tag of tags) {
+            const text = (tag.meta) ? `${tag.meta}:${tag.tag}` : `${tag.tag}`;
             const span = $('<span>')
             .addClass('tagit')
             .addClass('tag')
@@ -84,7 +87,7 @@ export class SettingsForm extends FormApplication {
             .append(
                 $('<a>')
                 .css('cursor','pointer')
-                .text(tag.tag)
+                .text(text)
                 .on('click', function() {
                     const data = {
                         tag: $(this).text(),
@@ -96,11 +99,7 @@ export class SettingsForm extends FormApplication {
                 })
             );
 
-            let color = game.settings.get(mod, 'defaultColor').tag;
-
-            if (tag.color) {
-                color = tag.color;
-            }
+            const color = tag.color ?? game.settings.get(mod, 'defaultColor').tag;
 
             $(span)
             .css({
