@@ -5,9 +5,33 @@ export function tagsort(a,b) {
 
     let sort = (a.sort ?? def) - (b.sort ?? def);
 
-    if (sort === 0) {
-        return a.tag.localeCompare(b.tag);
-    } else {
+    if (sort != 0) {
+        // Different sort values
+        return sort;
+    }
+
+    
+
+    if (a.meta && !b.meta) {
+        // Put 'a' tag behind non-meta 'b' tag
+        sort = 1;
+    } else if (b.meta && !a.meta) {
+        // Put 'b' tag behind non-meta 'a' tag
+        sort = -1;
+    } else if (a.meta && b.meta) {
+        // Both have meta tags
+        sort = a.meta.localeCompare(b.meta);
+    }
+
+    if (sort != 0) {
+        // Sort on meta, if available
+        return sort;
+    }
+
+    sort = a.tag.localeCompare(b.tag);
+
+    if (sort != 0) {
+        // Different tags
         return sort;
     }
 }
@@ -174,6 +198,10 @@ for (const document of TagItIndex.DocumentTypes) {
     
     Hooks.on(`update${document}`, (app, html, data) => {
         const index = TagItIndex._index.find(a => a.id === app.id && a.documentName === app.documentName);
+        if (Object.keys(html).length == 1) {
+            // No change to object, just index.
+            return;
+        }
 
         if (html.name) {
             index.name == html.name;
