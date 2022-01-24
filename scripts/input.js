@@ -100,41 +100,50 @@ export class TagItInput {
             throw "Invalid tag - Too many ':'"
         };
 
+        let first = num[0].trim();
+
+        if ((first[0] === `'` && first[first.length - 1] === `'`) ||
+            (first[0] === `"` && first[first.length - 1] === `"`)) {
+        
+            // Quoted
+            first = first.substring(1, first.length - 1);
+        }
+
         if (num.length == 2) {
             // Value tag or meta tag
             const value = parseInt(num[1]);
 
             if (isNaN(value)) {
                 // Meta Tag
-                return { tag: num[1], meta: num[0] };
+
+                let second = num[1].trim();
+
+                if ((second[0] === `'` && second[second.length - 1] === `'`) ||
+                    (second[0] === `"` && second[second.length - 1] === `"`)) {
+                
+                    // Quoted
+                    second = second.substring(1, second.length - 1);
+                }
+
+                return { tag: second, meta: first };
             } else {
                 // Value Tag
-                return { tag: num[0], value: value }
+                return { tag: first, value: value }
             }
         } else {
             // Standard tag
-            return { tag: num[0] };
+            return { tag: first };
         }
     }
 
     static textToTagLowerCase(text) {
-        const num = text.split(':');
-
-        if (num.length == 2) {
-            // Value tag or meta tag
-            const value = parseInt(num[1]);
-
-            if (isNaN(value)) {
-                // Meta Tag
-                return { tag: num[1].toLowerCase(), meta: num[0].toLowerCase() };
-            } else {
-                // Value Tag
-                return { tag: num[0].toLowerCase(), value: value }
-            }
-        } else {
-            // Standard tag
-            return { tag: num[0].toLowerCase() };
+        const tag = TagItInput.textToTag(text);
+        tag.tag == tag.tag.toLowerCase();
+        if (tag.meta) {
+            tag.meta = tag.meta.toLowerCase();
         }
+
+        return tag;
     }
 
     static async tagToSpan(tag, form, options) {
