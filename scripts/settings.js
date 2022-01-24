@@ -36,6 +36,15 @@ export class Settings {
             type: Object
         });
 
+        game.settings.register(mod, 'defaultSort', {
+            name: "Default Sort",
+            hint: "Lower values before higher values, then by name",
+            scope: "world",
+            config: true,
+            default: 100,
+            type: Number
+        });
+
         game.settings.registerMenu(mod, 'defaultColor', {
             name: "Default Colors",
             label: "Colors",

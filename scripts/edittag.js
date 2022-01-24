@@ -21,7 +21,7 @@ export class EditTag extends FormApplication {
             template: `modules/${mod}/templates/edittag.html`,
             classes: ["sheet"],
             width: 400,
-            height: 140,
+            height: 170,
             closeOnSubmit: true,
             submitOnClose: false,
             resizable: false
@@ -46,6 +46,8 @@ export class EditTag extends FormApplication {
             data.useDefaultColor = true;
             data.color = game.settings.get(mod, 'defaultColor').tag;
         }
+
+        data.sort = this.original.sort ?? game.settings.get(mod, 'defaultSort');
 
         data.owner = game.user.id;
         data.isGM = game.user.isGM;
@@ -214,8 +216,14 @@ export class EditTag extends FormApplication {
                 } else if (tag.color) {
                     delete tag['color'];
                 }
+                if (newTag.sort) {
+                    tag.sort = newTag.sort;
+                } else if (tag.sort) {
+                    delete tag['sort'];
+                }
             }
         } else {
+            // Remove tag
             tags = tags.filter(a => a.tag !== oldTag.tag);
         }
         
@@ -237,6 +245,15 @@ export class EditTag extends FormApplication {
 
         if (!data.defaultColor) {
             newTag.color = {tag: data.tagColor, text: data.textColor};
+        }
+
+        try {
+            const sort = parseInt(data.sort);
+            if (!isNaN(sort) && sort != game.settings.get(mod, 'defaultSort')) {
+                newTag.sort = sort;
+            }
+        } catch (e) {
+            
         }
 
         await this.modifyTags(this.original, newTag);
