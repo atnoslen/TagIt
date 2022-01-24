@@ -1,3 +1,17 @@
+import { Settings, mod } from './settings.js';
+
+export function tagsort(a,b) {
+    const def = game.settings.get(mod, 'defaultSort');
+
+    let sort = (a.sort ?? def) - (b.sort ?? def);
+
+    if (sort === 0) {
+        return a.tag.localeCompare(b.tag);
+    } else {
+        return sort;
+    }
+}
+
 export class TagItIndex {
     static _index = new Array();
     
@@ -37,7 +51,7 @@ export class TagItIndex {
                         name: document.name,
                         documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags :
+                            document.data.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
                         img: document.data.img
@@ -54,7 +68,7 @@ export class TagItIndex {
                         name: document.name,
                         documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags :
+                            document.data.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
                         img: document.data.thumb
@@ -71,7 +85,7 @@ export class TagItIndex {
                         name: document.name,
                         documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags :
+                            document.data.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
                         img: document.data.img
@@ -88,7 +102,7 @@ export class TagItIndex {
                         name: document.name,
                         documentName: document.documentName,
                         tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags :
+                            document.data.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
                         img: document.data.img
@@ -109,7 +123,7 @@ export class TagItIndex {
                             name: document.name,
                             documentName: compendium.documentName,
                             tags: (document.flags?.tagit?.tags?.length > 0) ?
-                                document.flags.tagit.tags :
+                                document.flags.tagit.tags.sort(tagsort) :
                                 [],
                             get document() {
                                 return (async () => {
@@ -145,7 +159,7 @@ for (const document of TagItIndex.DocumentTypes) {
             name: app.name,
             documentName: app.documentName,
             tags: (app.data.flags?.tagit?.tags?.length > 0) ?
-                app.data.flags.tagit.tags :
+                app.data.flags.tagit.tags.sort(tagsort) :
                 [],
             document: app,
             img: (app.documentName === "Scene") ? app.thumb : app.img
@@ -166,7 +180,7 @@ for (const document of TagItIndex.DocumentTypes) {
         }
 
         if (html.flags?.tagit?.tags?.length > 0) {
-            index.tags = html.flags.tagit.tags;
+            index.tags = html.flags.tagit.tags.sort(tagsort);
         } else {
             index.tags = [];
         }

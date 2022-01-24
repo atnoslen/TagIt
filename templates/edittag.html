@@ -11,7 +11,12 @@
             </div>
         </div>
         <div style="display:flex; flex-direction: row;justify-content: space-between;align-items: center;">
-            <div style="display:flex;align-items:center;margin:0.5em 0;height:2em">
+            <div style="display:flex;align-items:center;margin-top:0.5em;height:2em">
+                <label for="sort" style="margin-right:1em;">{{ localize "TagIt.EditTag.Sort.label"}}</label><input style="place-self: stretch;" name="sort" value="{{sort}}" />
+            </div>
+        </div>
+        <div style="display:flex; flex-direction: row;justify-content: space-between;align-items: center;">
+            <div style="display:flex;align-items:center;margin-top:0.5em;height:2em">
                 <label for="defaultColor">Default Color</label><input type="checkbox" name="defaultColor" {{checked useDefaultColor}}/>
                 <input type="color" name="tagColor" value="{{color.tag}}"/><label for="tagColor" style="margin: 0 0.6em 0 0.2em;">Tag</label>
                 <input type="color" name="textColor" value="{{color.text}}"/><label for="textColor" style="margin: 0 0 0 0.2em;">Text</label>

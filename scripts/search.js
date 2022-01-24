@@ -2,7 +2,7 @@ import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
-import { TagItIndex } from "./index.js";
+import { TagItIndex, tagsort } from "./index.js";
 
 export class TagItSearch extends FormApplication {
     
@@ -481,7 +481,7 @@ export class TagItSearch extends FormApplication {
                 documentName: document.documentName,
                 tags: [...new Set([].concat(document.data.flags?.tagit?.tags, document.actor?.data?.flags?.tagit?.tags))]
                 .filter(item => item !== undefined)
-                .sort((a,b) => a.tag.localeCompare(b.tag)),
+                .sort(tagsort),
                 document: document,
                 img: document.data.img
             }
