@@ -200,10 +200,20 @@ export class TagItSearch extends FormApplication {
 
             if (a.tags) {
                 for (const tag of a.tags) {
+                    let tagtext = '';
+
+                    if (tag.meta) {
+                        tagtext = `${tag.meta}:${tag.tag}`;
+                    } else if (tag.value) {
+                        tagtext = `${tag.tag}:${tag.value}`;
+                    } else {
+                        tagtext = `${tag.tag}`;
+                    }
+
                     const span = $('<span>')
                     .addClass('tagit')
                     .addClass('tag')
-                    .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`);
+                    .text(tagtext);
 
                     const color = game.settings.get(mod, 'defaultColor').tag;
 
@@ -583,34 +593,45 @@ export class TagItSearch extends FormApplication {
                     default:
                         // Tag with value
 
+                        const numValue = parseInt(value);
                         let valueExpr = null;
 
-                        switch (op) {
-                            case ":":
-                            case "=":
-                                valueExpr = function (tag) { return tag.value == value; }
-                                break;
-                            case ">":
-                                valueExpr = function (tag) { return tag.value > value; }
-                                break;
-                            case ">=":
-                                valueExpr = function (tag) { return tag.value >= value; }
-                                break;
-                            case "<":
-                                valueExpr = function (tag) { return tag.value < value; }
-                                break;
-                            case "<=":
-                                valueExpr = function (tag) { return tag.value <= value; }
-                                break;
+                        if (isNaN(numValue)) {
+                            // Meta
+                            valueExpr = function (tag) { return tag.tag.toLowerCase() === value.toLowerCase() && tag.meta?.toLowerCase() === item.toLowerCase(); }
+                        } else {
+                            // Number value
+                            switch (op) {
+                                case ":":
+                                case "=":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value == value; }
+                                    break;
+                                case ">":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value > value; }
+                                    break;
+                                case ">=":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value >= value; }
+                                    break;
+                                case "<":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value < value; }
+                                    break;
+                                case "<=":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value <= value; }
+                                    break;
+                            }
                         }
 
+                        
+
+                        
+
                         filter = function (document) {
-                            return document.tags.some(tag => tag.tag === item && valueExpr(tag))
+                            return document.tags.some(tag => valueExpr(tag))
                         }
 
                         tokenFilter = function(document) {
-                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag)) ||
-                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag));
+                            return document.data.flags?.tagit?.tags?.some(tag => valueExpr(tag)) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => valueExpr(tag));
                         }
 
                         expression =  {
@@ -622,12 +643,12 @@ export class TagItSearch extends FormApplication {
             } else {
                 // No operator
                 filter = function(document) {
-                    return document.tags.some(tag => tag.tag === item);
+                    return document.tags.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
                 }
 
                 tokenFilter = function(document) {
-                    return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item) ||
-                    document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item);
+                    return document.data.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase()) ||
+                    document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
                 }
 
 

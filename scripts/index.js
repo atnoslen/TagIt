@@ -5,9 +5,29 @@ export function tagsort(a,b) {
 
     let sort = (a.sort ?? def) - (b.sort ?? def);
 
-    if (sort === 0) {
-        return a.tag.localeCompare(b.tag);
+    if (sort != 0) {
+        // Different sort values
+        return sort;
+    }
+
+    sort = a.tag.localeCompare(b.tag);
+
+    if (sort != 0) {
+        // Different tags
+        return sort;
+    }
+
+    if (a.meta && !b.meta) {
+        // Put 'a' tag behind non-meta 'b' tag
+        return 1;
+    } else if (b.meta && !a.meta) {
+        // Put 'b' tag behind non-meta 'a' tag
+        return -1;
+    } else if (a.meta && b.meta) {
+        // Both have meta tags
+        return a.meta.localeCompare(b.meta);
     } else {
+        // Should never hit.  Duplicate tag
         return sort;
     }
 }

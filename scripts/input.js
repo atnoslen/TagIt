@@ -32,7 +32,7 @@ export class TagItInput {
 
             if ($('span.tagit.tag', collection).filter(function () {
                 const span = TagItInput.spanToTagLowerCase($(this));
-                return span.tag === tag.tag.toLowerCase() && span.value === tag.value;
+                return span.tag === tag.tag.toLowerCase() && span.value === tag.value && span.meta === tag.meta?.toLowerCase();
             }).length > 0) {
                 // Tag already exists.
                 console.log(`TagIt: Tag '${TagItInput.tagToText(tag)}' already exists on document.`)
@@ -100,18 +100,52 @@ export class TagItInput {
             throw "Invalid tag - Too many ':'"
         };
 
-        return (num.length == 2) ? { tag: num[0], value: parseInt(num[1]) } : { tag: num[0] };
+        if (num.length == 2) {
+            // Value tag or meta tag
+            const value = parseInt(num[1]);
+
+            if (isNaN(value)) {
+                // Meta Tag
+                return { tag: num[1], meta: num[0] };
+            } else {
+                // Value Tag
+                return { tag: num[0], value: value }
+            }
+        } else {
+            // Standard tag
+            return { tag: num[0] };
+        }
     }
 
     static textToTagLowerCase(text) {
         const num = text.split(':');
 
-        return (num.length > 1) ? { tag: num[0].toLowerCase(), value: num[1] } : { tag: num[0].toLowerCase() };
+        if (num.length == 2) {
+            // Value tag or meta tag
+            const value = parseInt(num[1]);
+
+            if (isNaN(value)) {
+                // Meta Tag
+                return { tag: num[1].toLowerCase(), meta: num[0].toLowerCase() };
+            } else {
+                // Value Tag
+                return { tag: num[0].toLowerCase(), value: value }
+            }
+        } else {
+            // Standard tag
+            return { tag: num[0].toLowerCase() };
+        }
     }
 
     static async tagToSpan(tag, form, options) {
-        const text = (tag.value) ? `${tag.tag}:${tag.value}` : `${tag.tag}`;
-
+        let text = '';
+        if (tag.value) {
+            text = `${tag.tag}:${tag.value}`;
+        } else if (tag.meta) {
+            text =`${tag.meta}:${tag.tag}`;
+        } else {
+            text = `${tag.tag}`;
+        }
         let otherTag = null;
         const otherItems = await TagItSearch.search(tag.tag, {limit:1});
         
