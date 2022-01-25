@@ -2,6 +2,7 @@ import { Settings, mod } from './settings.js';
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItSearch } from './search.js';
+import { TagItIndex } from './index.js';
 
 export class EditTag extends FormApplication {
     original = '';
@@ -21,7 +22,7 @@ export class EditTag extends FormApplication {
             template: `modules/${mod}/templates/edittag.html`,
             classes: ["sheet"],
             width: 400,
-            height: 140,
+            height: 170,
             closeOnSubmit: true,
             submitOnClose: false,
             resizable: false
@@ -37,7 +38,13 @@ export class EditTag extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        this.original = (await TagItSearch.search(data.object.tag, {limit:1}))[0].tags.filter(a => a.tag === data.object.tag)[0];
+        const tag = data.object.tag.split(":");
+
+        if (tag.length == 1) {
+            this.original = TagItIndex.Index.find(a => a.tags.some(b => b.tag == tag[0])).tags.find(a => a.tag == tag[0]);
+        } else if (tag.length == 2) {
+            this.original = TagItIndex.Index.find(a => a.tags.some(b => b.meta == tag[0] && b.tag == tag[1])).tags.find(a => a.meta == tag[0] && a.tag == tag[1]);
+        }
 
         if (this.original.color) {
             data.useDefaultColor = false;
@@ -46,6 +53,11 @@ export class EditTag extends FormApplication {
             data.useDefaultColor = true;
             data.color = game.settings.get(mod, 'defaultColor').tag;
         }
+
+        data.sort = this.original.sort ?? game.settings.get(mod, 'defaultSort');
+
+        data.displayMeta = this.original.displayMeta ?? true;
+
 
         data.owner = game.user.id;
         data.isGM = game.user.isGM;
@@ -158,36 +170,45 @@ export class EditTag extends FormApplication {
     async modifyTags(oldTag, newTag) {
         const promises = [];
 
-        for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
+        for (const index of TagItIndex.Index.filter(a => a.tags.some(b => b.tag == oldTag.tag && b.meta == oldTag.meta))) {
+            promises.push(this.modifyTag(await index.document, oldTag, newTag));
+        }
+
+        // for (const entity of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
+        //     promises.push(this.modifyTag(entity, oldTag, newTag));
+        // }
+
+        // for (const entity of game.scenes.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
+        //     promises.push(this.modifyTag(entity, oldTag, newTag));
+        // }
+
+        // for (const entity of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
+        //     promises.push(this.modifyTag(entity, oldTag, newTag));
+        // }
+
+        // for (const entity of game.items.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
+        //     promises.push(this.modifyTag(entity, oldTag, newTag));
+        // }
+
+        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.some(b => b.tag === oldTag.tag && b.meta == oldTag.meta))) {
             promises.push(this.modifyTag(entity, oldTag, newTag));
         }
 
-        for (const entity of game.scenes.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
-            promises.push(this.modifyTag(entity, oldTag, newTag));
-        }
-
-        for (const entity of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
-            promises.push(this.modifyTag(entity, oldTag, newTag));
-        }
-
-        for (const entity of game.items.filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
-            promises.push(this.modifyTag(entity, oldTag, newTag));
-        }
-
-        for (const entity of canvas.tokens.getDocuments().filter(a => a.data.flags?.tagit?.tags?.some(a => a.tag === oldTag.tag))) {
-            promises.push(this.modifyTag(entity, oldTag, newTag));
-        }
-
-        for (const pack of TagItPackCache.Index) {
-            for (const index of pack.items.filter(a => a.flags.tagit.tags.some(a => a.tag === oldTag.tag))) {
-                const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
+        // for (const pack of TagItPackCache.TagIndex) {
+        //     for (const index of pack.items.filter(a => a.flags.tagit.tags.some(a => a.tag === oldTag.tag))) {
+        //         const entity = await game.packs.get(`${pack.pack}.${pack.name}`).getDocument(index._id);
                 
-                promises.push(this.modifyTag(entity, oldTag, newTag));
-            }
-        }
+        //         promises.push(this.modifyTag(entity, oldTag, newTag));
+        //     }
+        // }
+
+        
 
         await Promise.all(promises);
         await TagItPackCache.init();
+
+        ui.notifications.info(`Updated ${promises.length} documents with tag ${oldTag.tag}`);
+        console.log(`TagIt: Updated ${promises.length} documents with tag ${oldTag.tag}`);
     }
 
     /**
@@ -201,17 +222,44 @@ export class EditTag extends FormApplication {
     modifyTag(entity, oldTag, newTag) {
         let tags = entity.getFlag(mod, 'tags');
 
-        if (newTag) {
-            for (const tag of tags.filter(a => a.tag === oldTag.tag)) {
+        if (oldTag.sort === newTag?.sort && oldTag.tag === newTag?.tag && oldTag.color?.tag === newTag?.color?.tag && oldTag.color?.text === newTag?.color?.text && oldTag.meta === newTag?.meta && oldTag.displayMeta === newTag?.displayMeta) {
+            // No change to tag
+            return;
+        }
+
+        if (newTag && !tags.some(a => a.sort === newTag.sort && a.tag === newTag.tag && a.meta === newTag.meta && a.color?.tag === newTag.color?.tag && a.color?.text === newTag.color?.text && a.displayMeta === newTag.displayMeta)) {
+            // New tag is not like an existing tag.
+            for (const tag of tags.filter(a => a.tag === oldTag.tag && a.meta === oldTag.meta)) {
                 tag.tag = newTag.tag;
+
                 if (newTag.color) {
                     tag.color = newTag.color;
                 } else if (tag.color) {
                     delete tag['color'];
                 }
+
+                if (newTag.sort) {
+                    tag.sort = newTag.sort;
+                } else if (tag.sort) {
+                    delete tag['sort'];
+                }
+
+                if (newTag.meta) {
+                    tag.meta = newTag.meta;
+                } else if (tag.meta) {
+                    delete tag['meta'];
+                }
+
+                if (newTag.displayMeta !== undefined) {
+                    tag.displayMeta = newTag.displayMeta;
+                } else if (tag.displayMeta !== undefined) {
+                    delete tag['displayMeta'];
+                }
             }
+            
         } else {
-            tags = tags.filter(a => a.tag !== oldTag.tag);
+            // Remove old tag
+            tags = tags.filter(a => !(a.tag === oldTag.tag && a.meta === oldTag.meta));
         }
         
 
@@ -228,10 +276,31 @@ export class EditTag extends FormApplication {
     async _updateObject(event, data) {
         const _this = this;
 
-        const newTag = { tag: data.tag };
+        const text = data.tag.split(":");
+        const newTag = { tag: data.tag.trim() }
+
+        if (text.length == 2) {
+            newTag.meta = text[0].trim();
+            newTag.tag = text[1].trim();
+        }
+
+        //const newTag = { tag: data.tag };
 
         if (!data.defaultColor) {
             newTag.color = {tag: data.tagColor, text: data.textColor};
+        }
+
+        try {
+            const sort = parseInt(data.sort);
+            if (!isNaN(sort) && sort != game.settings.get(mod, 'defaultSort')) {
+                newTag.sort = sort;
+            }
+        } catch (e) {
+            
+        }
+
+        if (data['display-meta'] === false) {
+            newTag.displayMeta = false;
         }
 
         await this.modifyTags(this.original, newTag);

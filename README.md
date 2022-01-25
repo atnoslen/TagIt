@@ -17,14 +17,18 @@ A module to tag entities and then search for them.
 * Open items from search
 * Drag the results to where you need
 
-# New Features in 0.3!
+# New Features in 0.4!
 
-* Scene support!  Tag your scenes through the `Configure Scene` window.
-* New search!  And, Or,  Group your way to the items you want.
-* API support!  `game.modules.get('tagit').api.search(string, options)` will get you results. Documents not included.
-* Colors! Don't like the colors?  Change them, both the default and individual tags.
-* Drag & Drop!  Opening results is all well and good, but what about creating that monster or importing that journal entry?  You can do that.
-* Numerical values!  Add a number to a tag and search if greater or less than.  Perfect for your level 1 rogue.
+* You will only receive the results for documents you have permission to view!  Sorry metagamers...
+* New and improved index! Enables new capabilities such as:
+  * Using predicates in `search(predicate, options)` API!
+  * New `find(predicate)` API call!
+  * Search results returned include a `.document` property that will retrieve the document for you!
+* Added sort to tags!  Find under the tag management in options.
+* Added meta tags!  Now you can make things messier adding `alignment:neutral` everywhere...
+  * You can turn off displaying a meta tag in the settings
+* Unflagged searches now search tags and names!
+* Added notifications when tags are modified on objects
 
 # Demo
 
@@ -79,6 +83,12 @@ Change the color of a tag
 
 ![Demo of color picker](demo/tagit-colors.gif)
 
+## Meta Tags & Sort
+
+Add an alignment meta tag with a tag of `N` for Neutral.  However, when we search, we see it labeled as `alignment:N`.  We want to see it just as `N`.  Also a different color.  And sorted to the front of the tag list.  At the end, our new alignment tag only displays `N` and is at the front of the tag list.
+
+![Demo meta and sort](demo/tagit-meta-tag.gif)
+
 # TODO
 
 * CSV Import - Adding tags to individual items is a lot of work...
@@ -92,18 +102,24 @@ Change the color of a tag
 
 # Changelog
 
-## V0.1.0
-The beginning
+## v0.4
 
-## v0.2
-
-* Standardized tags to `span` objects to be used throughout
-* Included all tags on search
-* Entity type is visually represented as a tag
-* Can manage tags in module settings including
-  * Renaming tags
-  * Removing individual tags
-* Remove all tags in module settings
+* All searchable documents, except tokens, are added to an index that is maintained as documents are added, modified, and removed.
+* Unified index documents to ensure data consistency on results.
+* `sort:Number` can be added to a tag.
+  * Default is under settings (100).
+  * Lower numbers sort earlier.
+* `meta:String` can be added to a tag.
+  * Represented in text as `String:String`.  Differs from value tags that have `String:Number`.
+  * Can search for meta with `meta:String`.
+  * Individual tags can have their meta not dispaly in search results.
+* Unflagged search strings will now search tags and names.
+* Added many notifications when documents are modified.
+* Fix: When searching for a name compendiums were not being returned
+* Fix: When searching, an item that had a `'`, such as `falcon's` would fail
+* Fix: Tokens that are linked to their actor were showing twice in search results
+* Fix: You can only get results that you have permissions for.
+* Fix: When quoting a tag on enter, should now remove quotes.
 
 ## v0.3
 
@@ -122,3 +138,18 @@ The beginning
 * Added default color options.
 * Fixed sorting search results by name.
 * Fixed `Scene` were not removed when removing all tags.
+
+## v0.2
+
+* Standardized tags to `span` objects to be used throughout
+* Included all tags on search
+* Entity type is visually represented as a tag
+* Can manage tags in module settings including
+  * Renaming tags
+  * Removing individual tags
+* Remove all tags in module settings
+
+## V0.1.0
+The beginning
+
+

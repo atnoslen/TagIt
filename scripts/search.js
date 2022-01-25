@@ -2,10 +2,9 @@ import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
+import { TagItIndex, tagsort } from "./index.js";
 
 export class TagItSearch extends FormApplication {
-
-    tagcache = null;
     
     constructor(object, options) {
         super(object, options);
@@ -32,9 +31,9 @@ export class TagItSearch extends FormApplication {
         const _this = this;
         const data = super.getData();
 
-        _this.tagcache = await TagItTagManager.getUsedTags();
+        // _this.tagcache = await TagItTagManager.getUsedTags();
 
-        data.tagcache = _this.tagcache;
+        // data.tagcache = _this.tagcache;
         data.appId = this.appId;
 
         return data;
@@ -144,73 +143,46 @@ export class TagItSearch extends FormApplication {
                         'border-color': game.settings.get(mod, 'defaultColor').document.tag,
                         'color': game.settings.get(mod, 'defaultColor').document.text
                     })
-                    .text(a.type)
+                    .text(a.documentName)
                 )
             );
 
             const dragData = {
                 id: a.id,
-                type: a.type
+                type: a.documentName
             };
 
-            if (a.pack) {
-                dragData.pack = a.pack;
+            if (a.compendium) {
+                dragData.pack = a.compendium;
+
+                $(item)
+                .attr('data-pack', a.compendium);
+
+                $(item).append(
+                    $('<div>')
+                    .addClass('entity-info')
+                    .append(
+                        $('<p>')
+                        .text(`(${a.compendium})`)
+                    )
+                );
             }
 
-            switch(a.type) {
+            switch(a.documentName) {
                 case "JournalEntry":
-                    $(item)
-                    .addClass('journalentry')
-                    .attr('draggable', 'true')
-                    .on('dragstart', function (e) {
-                        e.originalEvent.dataTransfer
-                        .setData("text/plain",JSON.stringify(dragData))
-                    });
-
-                    $('a', item).on("click", function () {
-                        game.journal.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
-                    });
-
-                    break;
                 case "Scene":
-                    $(item)
-                    .addClass('scene')
-                    .attr('draggable', 'true')
-                    .on('dragstart', function (e) {
-                        e.originalEvent.dataTransfer
-                        .setData("text/plain",JSON.stringify(dragData))
-                    });
-
-                    $('a', item).on("click", function () {
-                        game.scenes.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
-                    });
-
-                    break;
                 case "Actor":
-                    $(item)
-                    .addClass('actor')
-                    .attr('draggable', 'true')
-                    .on('dragstart', function (e) {
-                        e.originalEvent.dataTransfer
-                        .setData("text/plain",JSON.stringify(dragData))
-                    });
-
-                    $('a', item).on("click", function () {
-                        game.actors.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
-                    });
-
-                    break;
                 case "Item":
                     $(item)
-                    .addClass('item')
                     .attr('draggable', 'true')
                     .on('dragstart', function (e) {
                         e.originalEvent.dataTransfer
                         .setData("text/plain",JSON.stringify(dragData))
                     });
 
-                    $('a', item).on("click", function () {
-                        game.items.get($(this).parent().parent().parent().attr("data-document-id")).sheet.render(true);
+                    $('a', item).on("click", async function () {
+                        const d = await a.document;
+                        d.sheet.render(true);
                     });
 
                     break;
@@ -218,41 +190,30 @@ export class TagItSearch extends FormApplication {
                     $(item).addClass('token');
 
                     $('a', item).on("click", function () {
-                        canvas.tokens.objects?.children?.find(a => a.id === $(this).parent().parent().parent().attr("data-document-id")).actor.sheet.render(true);
+                        a.actor.sheet.render(true);
                     });
 
                     break;
-            }
-
-            if (a.pack) {
-                // Reset click event
-                $('a', item)
-                .off("click")
-                .on("click", function () {
-                    game.packs.get($(this).parent().parent().parent().attr("data-pack")).getDocument($(this).parent().parent().parent().attr("data-document-id")).then(a => a.sheet.render(true));
-                });
-
-                $(item).addClass('pack')
-                .attr('data-pack', a.pack);
-
-                $(item).append(
-                    $('<div>')
-                    .addClass('entity-info')
-                    .append(
-                        $('<p>')
-                        .text(`(${a.pack})`)
-                    )
-                );
             }
 
             const collectionElement = $('div.tag.collection', item);
 
             if (a.tags) {
                 for (const tag of a.tags) {
+                    let tagtext = '';
+
+                    if (tag.meta && (tag.displayMeta === undefined || (tag.displayMeta)) ) {
+                        tagtext = `${tag.meta}:${tag.tag}`;
+                    } else if (tag.value) {
+                        tagtext = `${tag.tag}:${tag.value}`;
+                    } else {
+                        tagtext = `${tag.tag}`;
+                    }
+
                     const span = $('<span>')
                     .addClass('tagit')
                     .addClass('tag')
-                    .text((tag.value)? `${tag.tag}:${tag.value}`:`${tag.tag}`);
+                    .text(tagtext);
 
                     const color = game.settings.get(mod, 'defaultColor').tag;
 
@@ -332,7 +293,7 @@ export class TagItSearch extends FormApplication {
                         // start = 1
                         // end = index - 1
                         tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
-                    } else {
+                    } else if (index == 0) {
                         sQuote = true;
                     }
 
@@ -353,7 +314,7 @@ export class TagItSearch extends FormApplication {
                         // end = index - 1
 
                         tokenClose.push({start: 1, end: index, offset: 0, recurse: false});
-                    } else {
+                    } else if (index == 0) {
                         dQuote = true;
                     }
 
@@ -512,7 +473,9 @@ export class TagItSearch extends FormApplication {
         't',
         'type',
         'document-type',
-        'tag'
+        'tag',
+        'meta',
+        'm'
     ]
 
     static async parser(tokens) {
@@ -523,36 +486,14 @@ export class TagItSearch extends FormApplication {
         const operators = [':','=','<','<=','>','>='];
         const boolOperators = ['&&','||'];
 
-        const documentMap = function(document) {
-            return {
-                id: document.id,
-                name: document.name,
-                type: document.documentName,
-                tags: document.data.flags?.tagit?.tags,
-                document: document,
-                img: (document.documentName === "Scene") ? document.data.thumb : document.img
-            }
-        }
-
-        const compendiumMap = function(pack, index) {
-            return {
-                id: index._id,
-                name: index.name,
-                type: pack.type,
-                tags: index.flags.tagit.tags,
-                pack: `${pack.pack}.${pack.name}`,
-                img: (pack.type === "Scene") ? index.thumb : index.img
-            }
-        }
-
         const tokenMap = function(document) {
             return {
                 id: document.id,
                 name: document.name,
-                type: document.documentName,
+                documentName: document.documentName,
                 tags: [...new Set([].concat(document.data.flags?.tagit?.tags, document.actor?.data?.flags?.tagit?.tags))]
                 .filter(item => item !== undefined)
-                .sort(),
+                .sort(tagsort),
                 document: document,
                 img: document.data.img
             }
@@ -590,90 +531,76 @@ export class TagItSearch extends FormApplication {
                     case 'type':
                     case 'document-type':
                         // Filtering an entity
-                        expression =  {
-                            op: "doc-filter",
-                            collection: function(packIndex) {
-                                const documents = [];
+                        let doc = value.toLowerCase();
 
-                                let doc = value.toLowerCase();
-
-                                // Provide some shortcuts
-                                switch(doc) {
-                                    case "journal":
-                                    case "j":
-                                        doc = "journalentry";
-                                        break;
-                                    case "a":
-                                        doc = "actor";
-                                        break;
-                                    case "i":
-                                        doc = "item";
-                                        break;
-                                    case "s":
-                                        doc = "scene";
-                                        break;
-                                    case "t":
-                                        doc = "token";
-                                        break;
-                                }
-
-                                if (packIndex) {
-                                    documents.push(
-                                        packIndex.filter(a => a.type.toLowerCase() === doc.toLowerCase())
-                                        .flatMap(pack => pack.items
-                                            .map(index => compendiumMap(pack, index))
-                                        )
-                                    );
-                                }
-
-
-                                switch (doc) {
-                                    case "journalentry":
-                                        documents.push(
-                                            game.journal
-                                            .map(document => documentMap(document))
-                                        )
-                                        break;
-                                    case "scene":
-                                        documents.push(
-                                            game.scenes
-                                            .map(document => documentMap(document))
-                                        )
-                                        break;
-                                    case "actor":
-                                        documents.push(
-                                            game.actors
-                                            .map(document => documentMap(document))
-                                        )
-                                        break;
-                                    case "item":
-                                        documents.push(
-                                            game.items
-                                            .map(document => documentMap(document))
-                                        )                                      
-                                        break;
-                                    case "token":
-                                        documents.push(
-                                            canvas.tokens.getDocuments()
-                                            .map(document => tokenMap(document))
-                                        ) 
-                                        break;
-                                }
-
-                                return documents.flat();
-                            }
+                        switch(doc) {
+                            case "journal":
+                            case "j":
+                                doc = "journalentry";
+                                break;
+                            case "a":
+                                doc = "actor";
+                                break;
+                            case "i":
+                                doc = "item";
+                                break;
+                            case "s":
+                                doc = "scene";
+                                break;
+                            case "t":
+                                doc = "token";
+                                break;
+                            case "compendium":
+                            case "pack":
+                            case "c":
+                                doc = "compendium";
+                                break;
                         }
+
+                        expression =  {
+                            op: "doc-filter"
+                        }
+
+                        if (doc === "compendium") {
+                            filter = function(document) {
+                                return document.compendium;
+                            }
+    
+                            tokenFilter = filter;
+                        } else {
+                            filter = function(document) {
+                                return document.documentName.toLowerCase() == doc;
+                            }
+    
+                            tokenFilter = filter;
+                        }
+
                         break;
                     case 'tag':
                         // Looking for a tag
 
                         filter = function(document) {
-                            return document.flags?.tagit?.tags?.some(tag => tag.tag === value);
+                            return document.tags.some(tag => tag.tag.toLowerCase() === value.toLowerCase());
                         }
 
                         tokenFilter = function(document) {
-                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === value) ||
-                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === value);
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === value.toLowerCase()) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === value.toLowerCase());
+                        }
+
+                        expression = {
+                            op: "filter"
+                        };
+                        break;
+                    case 'meta':
+                    case 'm':
+                        filter = function(document) {
+                            return document.tags.some(tag => tag.meta && tag.meta.toLowerCase() === value.toLowerCase());
+                        }
+
+                        tokenFilter = function(document) {
+                            return document.data.flags?.tagit?.tags?.some(tag => tag.meta && tag.meta.toLowerCase() === value.toLowerCase()) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.meta && tag.meta.toLowerCase() === value.toLowerCase());
                         }
 
                         expression = {
@@ -683,34 +610,45 @@ export class TagItSearch extends FormApplication {
                     default:
                         // Tag with value
 
+                        const numValue = parseInt(value);
                         let valueExpr = null;
 
-                        switch (op) {
-                            case ":":
-                            case "=":
-                                valueExpr = function (tag) { return tag.value == value; }
-                                break;
-                            case ">":
-                                valueExpr = function (tag) { return tag.value > value; }
-                                break;
-                            case ">=":
-                                valueExpr = function (tag) { return tag.value >= value; }
-                                break;
-                            case "<":
-                                valueExpr = function (tag) { return tag.value < value; }
-                                break;
-                            case "<=":
-                                valueExpr = function (tag) { return tag.value <= value; }
-                                break;
+                        if (isNaN(numValue)) {
+                            // Meta
+                            valueExpr = function (tag) { return tag.tag.toLowerCase() === value.toLowerCase() && tag.meta?.toLowerCase() === item.toLowerCase(); }
+                        } else {
+                            // Number value
+                            switch (op) {
+                                case ":":
+                                case "=":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value == value; }
+                                    break;
+                                case ">":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value > value; }
+                                    break;
+                                case ">=":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value >= value; }
+                                    break;
+                                case "<":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value < value; }
+                                    break;
+                                case "<=":
+                                    valueExpr = function (tag) { return tag.tag.toLowerCase() === item.toLowerCase() && tag.value <= value; }
+                                    break;
+                            }
                         }
 
+                        
+
+                        
+
                         filter = function (document) {
-                            return document.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag))
+                            return document.tags.some(tag => valueExpr(tag))
                         }
 
                         tokenFilter = function(document) {
-                            return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag)) ||
-                            document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item && valueExpr(tag));
+                            return document.data.flags?.tagit?.tags?.some(tag => valueExpr(tag)) ||
+                            document.actor?.data?.flags?.tagit?.tags?.some(tag => valueExpr(tag));
                         }
 
                         expression =  {
@@ -721,45 +659,35 @@ export class TagItSearch extends FormApplication {
                 }
             } else {
                 // No operator
-                filter = function(document) {
-                    return document.flags?.tagit?.tags?.some(tag => tag.tag === item);
-                }
+                tokens.unshift(['name', ':', item, '||', 'tag', ':', item]);
 
-                tokenFilter = function(document) {
-                    return document.data.flags?.tagit?.tags?.some(tag => tag.tag === item) ||
-                    document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag === item);
-                }
+                continue;
+                
+                // filter = function(document) {
+                //     return document.tags.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
+                // }
+
+                // tokenFilter = function(document) {
+                //     return document.data.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase()) ||
+                //     document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
+                // }
 
 
-                expression = {
-                    op: "filter"
-                }
+                // expression = {
+                //     op: "filter"
+                // }
             }
 
             if (expression && filter) {
                 expression.document = function(collection) {
                     return collection
-                    .filter(document => filter(document.data))
-                    .map(document => documentMap(document));
+                    .filter(document => filter(document));
                 };
-
-                expression.pack = function (compendiums) {
-                    const indexes = [];
-                    for (const compendium of compendiums) {
-                        indexes.push(
-                            compendium.items
-                            .filter(index => filter(index))
-                            .map(index => compendiumMap(compendium, index))
-                        );
-                    }
-
-                    return indexes.flat();
-                }
 
                 expression.token = function(collection) {
                     return collection
-                    .filter(document => tokenFilter(document))
-                    .map(document => tokenMap(document));
+                    .filter(document => !document.isLinked && tokenFilter(document))
+                    .map(token => tokenMap(token));
                 }
             }
 
@@ -768,8 +696,6 @@ export class TagItSearch extends FormApplication {
 
                 expressions.push(expression);
                 expression = null;
-
-                
             }
 
             if (merge) {
@@ -817,7 +743,7 @@ export class TagItSearch extends FormApplication {
         return expressions;
     }
 
-    static exec(et, packIndex) {
+    static exec(et) {
         let a = null;
         let b = null;
         let x = null;
@@ -828,22 +754,15 @@ export class TagItSearch extends FormApplication {
 
             if (Array.isArray(expression)) {
                 // Parentheticals
-                x = TagItSearch.exec(expression, packIndex);
+                x = TagItSearch.exec(expression);
             } else {
+                x = [];
                 switch (expression.op) {
                     case 'filter':
-                        x = [].concat(
-                            expression.document(game.journal),
-                            expression.document(game.actors),
-                            expression.document(game.scenes),
-                            expression.document(game.items),
-                            expression.pack(packIndex),
-                            expression.token(canvas.tokens.getDocuments())
-                        );
-    
-                        break;
                     case 'doc-filter':
-                        x = expression.collection(packIndex);
+                        x.push(...expression.document(TagItIndex.Index));
+                        x.push(...expression.token(canvas.tokens.getDocuments()))
+    
                         break;
                     case 'merge':
                         a = expression.func(a, b);
@@ -861,29 +780,61 @@ export class TagItSearch extends FormApplication {
         return a;
     }
 
+    static async find(predicate) {
+        const promise = new Promise(async function(resolve, reject) {
+            try {
+                const results = TagItIndex.Index.find(predicate);
+                resolve(results);
+            } catch (e) {
+                reject(e);
+            }
+        });
+
+        return promise;
+    }
+
     static async search(item, options) {
         const defaults = {
             limit: 20
         };
         options = $.extend({}, defaults, options || {});
 
-        const promise = new Promise(async function(resolve, reject) {
-            try {
-                const tokens = TagItSearch.tokenizer(item);
-                const instructions = await TagItSearch.parser(tokens);
-                let results = TagItSearch
-                .exec(instructions, TagItPackCache.Index)
-                .sort((a,b) => a.name.localeCompare(b.name));
+        let promise = null;
 
-                if (options.limit > 0) {
-                    results = results.slice(0, options.limit);
+        if (item instanceof Function) {
+            promise = new Promise(async function(resolve, reject) {
+                try {
+                    let results = TagItIndex.Index.filter(item)
+                    .sort((a,b) => a.name.localeCompare(b.name));
+
+                    if (options.limit > 0) {
+                        results = results.slice(0, options.limit);
+                    }
+
+                    resolve(results);
+                } catch (e) {
+                    reject(e);
                 }
-
-                resolve(results);
-            } catch (e) {
-                reject(e);
-            }
-        });
+            });
+        } else {
+            promise = new Promise(async function(resolve, reject) {
+                try {
+                    const tokens = TagItSearch.tokenizer(item);
+                    const instructions = await TagItSearch.parser(tokens);
+                    let results = TagItSearch
+                    .exec(instructions)
+                    .sort((a,b) => a.name.localeCompare(b.name));
+    
+                    if (options.limit > 0) {
+                        results = results.slice(0, options.limit);
+                    }
+    
+                    resolve(results);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
 
         return promise;
     }

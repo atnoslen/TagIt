@@ -1,5 +1,6 @@
 import { Settings, mod } from "./settings.js";
 import { TagItSearch } from './search.js';
+import { TagItIndex } from "./index.js";
 
 export class TagItInput {
     /**
@@ -22,7 +23,7 @@ export class TagItInput {
             tag = { tag: $.trim($(`#taginput${form.appId}`, form.element).val()) };
         }
 
-        if (TagItSearch.reservedTokens.includes(tag.tag.toLowerCase())) {
+        if (!tag.meta && TagItSearch.reservedTokens.includes(tag.tag.toLowerCase())) {
             ui.notifications.error("Invalid tag - Reserved Token");
             throw "Invalid tag - Reserved Token"
         }
@@ -32,7 +33,7 @@ export class TagItInput {
 
             if ($('span.tagit.tag', collection).filter(function () {
                 const span = TagItInput.spanToTagLowerCase($(this));
-                return span.tag === tag.tag.toLowerCase() && span.value === tag.value;
+                return span.tag === tag.tag.toLowerCase() && span.value === tag.value && span.meta === tag.meta?.toLowerCase();
             }).length > 0) {
                 // Tag already exists.
                 console.log(`TagIt: Tag '${TagItInput.tagToText(tag)}' already exists on document.`)
@@ -81,6 +82,16 @@ export class TagItInput {
             delete tag.color;
         }
 
+        const sort = $(span).attr('data-sort');
+        if (sort) {
+            tag.sort = sort;
+        }
+
+        const displayMeta = $(span).attr('data-display-meta');
+        if (displayMeta !== undefined) {
+            tag.displayMeta = displayMeta == "true";
+        }
+
         
         return tag;
     }
@@ -100,36 +111,81 @@ export class TagItInput {
             throw "Invalid tag - Too many ':'"
         };
 
-        return (num.length == 2) ? { tag: num[0], value: parseInt(num[1]) } : { tag: num[0] };
+        let first = num[0].trim();
+
+        if ((first[0] === `'` && first[first.length - 1] === `'`) ||
+            (first[0] === `"` && first[first.length - 1] === `"`)) {
+        
+            // Quoted
+            first = first.substring(1, first.length - 1);
+        }
+
+        if (num.length == 2) {
+            // Value tag or meta tag
+            const value = parseInt(num[1]);
+
+            if (isNaN(value)) {
+                // Meta Tag
+
+                let second = num[1].trim();
+
+                if ((second[0] === `'` && second[second.length - 1] === `'`) ||
+                    (second[0] === `"` && second[second.length - 1] === `"`)) {
+                
+                    // Quoted
+                    second = second.substring(1, second.length - 1);
+                }
+
+                return { tag: second, meta: first };
+            } else {
+                // Value Tag
+                return { tag: first, value: value }
+            }
+        } else {
+            // Standard tag
+            return { tag: first };
+        }
     }
 
     static textToTagLowerCase(text) {
-        const num = text.split(':');
+        const tag = TagItInput.textToTag(text);
+        tag.tag == tag.tag.toLowerCase();
+        if (tag.meta) {
+            tag.meta = tag.meta.toLowerCase();
+        }
 
-        return (num.length > 1) ? { tag: num[0].toLowerCase(), value: num[1] } : { tag: num[0].toLowerCase() };
+        return tag;
     }
 
     static async tagToSpan(tag, form, options) {
-        const text = (tag.value) ? `${tag.tag}:${tag.value}` : `${tag.tag}`;
-
-        let otherTag = null;
-        const otherItems = await TagItSearch.search(tag.tag, {limit:1});
-        
-        if (otherItems.length > 0) {
-            otherTag = otherItems[0].tags.filter(a => a.tag === tag.tag)[0];
+        let text = '';
+        if (tag.value) {
+            text = `${tag.tag}:${tag.value}`;
+        } else if (tag.meta) {
+            text =`${tag.meta}:${tag.tag}`;
+        } else {
+            text = `${tag.tag}`;
         }
-        
 
         const ele = $('<span>')
         .addClass('tagit')
         .addClass('tag')
         .text(text);
 
-        let color = game.settings.get(mod, 'defaultColor').tag;
+        const color = tag.color ?? game.settings.get(mod, 'defaultColor').tag;
+        const otherTag = TagItIndex.Index.find(a => a.tags.some(b => b.tag === tag.tag && b.meta === tag.meta))?.tags.find(a => a.tag === tag.tag && a.meta === tag.meta);
 
-        if (otherTag && otherTag.color) {
+        if (!tag.color && otherTag && otherTag.color) {
             color.tag = otherTag.color.tag;
             color.text = otherTag.color.text;
+        }
+
+        if (otherTag && otherTag.sort) {
+            $(ele).attr('data-sort', otherTag.sort);
+        }
+
+        if (otherTag && otherTag.displayMeta !== undefined) {
+            $(ele).attr('data-display-meta', otherTag.displayMeta);
         }
 
         $(ele)
@@ -178,8 +234,8 @@ export class TagItInput {
         const dataList = $(`datalist#tagcache${form.appId}`, form.element);
         dataList.empty();
     
-        $.each(form.tagcache.filter(a => !tags.includes(a.toLowerCase())), function (index, value) {
-            dataList.append($('<option>').val(value));
+        $.each(form.tagcache.filter(a => !tags.includes(a.tag.toLowerCase())), function (index, value) {
+            dataList.append($('<option>').val(value.tag));
         });
     }
 

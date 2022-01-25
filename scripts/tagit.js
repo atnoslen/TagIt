@@ -3,6 +3,7 @@ import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
+import { TagItIndex, tagsort } from "./index.js";
 
 class TagIt extends FormApplication {
 
@@ -46,7 +47,7 @@ class TagIt extends FormApplication {
 
         this.tagcache = await TagItTagManager.getUsedTags();
         
-        data.tags = this.tags
+        data.tags = this.tags.sort(tagsort);
         data.tagcache = this.tagcache;
         data.flags = this.entity.data.flags;
         data.owner = game.user.id;
@@ -107,11 +108,29 @@ class TagIt extends FormApplication {
                 entity = this.entity.token;
             }
 
+            let numTags = 0;
+            const originalTags = entity.getFlag(mod, 'tags');
+
+            if (originalTags) {
+                numTags = originalTags.length;
+            }
+
             if (items.length > 0) {
                 await entity.setFlag(mod, 'tags', items);
             } else {
                 await entity.unsetFlag(mod, 'tags');
             }
+
+            numTags = items.length - numTags;
+            if (numTags > 0) {
+                // Added
+
+                ui.notifications.info(`Added ${numTags} tag${(numTags == 1) ? '' : 's'} to ${entity.name}`);
+            } else if (numTags < 0) {
+                // Removed
+                ui.notifications.info(`Removed ${numTags * -1} tag${(numTags == -1) ? '' : 's'} from ${entity.name}`);
+            }
+            
 
             this.render();
         } else {
@@ -261,10 +280,22 @@ Hooks.on('renderSceneConfig', (app, html, data) => {
 Hooks.once('ready', async () => {
     Settings.registerSettings();
 
+    
+
     game.modules.get(mod).api = {
         search: TagItSearch.search,
-        packCache: TagItPackCache
+        find: TagItSearch.find
+//        packCache: TagItPackCache,
+//        index: TagItIndex,
     };
 
     await TagIt.migrateFrom02();
+
+    
+    await TagItPackCache.init();
+    await TagItIndex.init();
+
+    
+
+    
 });
