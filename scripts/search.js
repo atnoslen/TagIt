@@ -202,7 +202,7 @@ export class TagItSearch extends FormApplication {
                 for (const tag of a.tags) {
                     let tagtext = '';
 
-                    if (tag.meta) {
+                    if (tag.meta && (tag.displayMeta === undefined || (tag.displayMeta)) ) {
                         tagtext = `${tag.meta}:${tag.tag}`;
                     } else if (tag.value) {
                         tagtext = `${tag.tag}:${tag.value}`;

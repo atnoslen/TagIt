@@ -1,5 +1,6 @@
 import { Settings, mod } from "./settings.js";
 import { TagItPackCache } from "./packcache.js";
+import { TagItIndex, tagsort } from "./index.js";
 
 export class TagItTagManager {
     static async getUsedTags() {
@@ -71,6 +72,60 @@ export class TagItTagManager {
     
         return [...new Set([].concat(journaltags, scenetags, actortags, itemtags, tokentags, packtags))]
         .sort((a,b) => a.tag.localeCompare(b.tag));
+    }
+
+    static getUsedTagsWithMeta() {
+        //let tags = new Set();
+
+        const tags = [];
+
+        for (const document of TagItIndex.Index) {
+            for (const tag of document.tags) {
+                if (tag.meta && !tags.some(a => a.tag == tag.tag && a.meta == tag.meta)) {
+                    tags.push(tag)
+                } else if (!tags.some(a => a.tag == tag.tag)) {
+                    tags.push(tag);
+                }
+            }
+        }
+
+        return tags.sort(tagsort);
+
+        // return [...tags]
+        // .sort((a,b) => {
+        //     const A = a.split(':');
+        //     const B = b.split(':');
+
+        //     if (A.length == 1 && B.length == 1) {
+        //         // Two single tags
+        //         return a.localeCompare(b);
+        //     }
+
+        //     if (A.length == 2 && B.length == 2) {
+        //         // Two meta tags
+        //         const meta = A[0].localeCompare(B[0]);
+
+        //         if (meta != 0) {
+        //             return meta;
+        //         }
+
+        //         return A[1].localeCompare(B[1]);
+        //     }
+
+        //     if (A.length == 1 && B.length == 2) {
+        //         // Left is no meta, right is meta
+        //         return -1;
+        //     }
+
+        //     if (A.length == 2 && B.length == 1) {
+        //         // Left is meta, right is no meta, swap
+        //         return 1;
+        //     }
+
+        //     // Should never get to.
+
+        //     return a.localeCompare(b);
+        // });
     }
 
     static async removeAll() {

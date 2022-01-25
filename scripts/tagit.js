@@ -3,7 +3,7 @@ import { TagItSearch } from "./search.js";
 import { TagItPackCache } from "./packcache.js";
 import { TagItTagManager } from "./tagmanager.js";
 import { TagItInput } from "./input.js";
-import { TagItIndex } from "./index.js";
+import { TagItIndex, tagsort } from "./index.js";
 
 class TagIt extends FormApplication {
 
@@ -47,7 +47,7 @@ class TagIt extends FormApplication {
 
         this.tagcache = await TagItTagManager.getUsedTags();
         
-        data.tags = this.tags
+        data.tags = this.tags.sort(tagsort);
         data.tagcache = this.tagcache;
         data.flags = this.entity.data.flags;
         data.owner = game.user.id;
