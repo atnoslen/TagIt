@@ -659,19 +659,23 @@ export class TagItSearch extends FormApplication {
                 }
             } else {
                 // No operator
-                filter = function(document) {
-                    return document.tags.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
-                }
+                tokens.unshift(['name', ':', item, '||', 'tag', ':', item]);
 
-                tokenFilter = function(document) {
-                    return document.data.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase()) ||
-                    document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
-                }
+                continue;
+                
+                // filter = function(document) {
+                //     return document.tags.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
+                // }
+
+                // tokenFilter = function(document) {
+                //     return document.data.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase()) ||
+                //     document.actor?.data?.flags?.tagit?.tags?.some(tag => tag.tag.toLowerCase() === item.toLowerCase());
+                // }
 
 
-                expression = {
-                    op: "filter"
-                }
+                // expression = {
+                //     op: "filter"
+                // }
             }
 
             if (expression && filter) {
