@@ -780,29 +780,61 @@ export class TagItSearch extends FormApplication {
         return a;
     }
 
+    static async find(predicate) {
+        const promise = new Promise(async function(resolve, reject) {
+            try {
+                const results = TagItIndex.Index.find(predicate);
+                resolve(results);
+            } catch (e) {
+                reject(e);
+            }
+        });
+
+        return promise;
+    }
+
     static async search(item, options) {
         const defaults = {
             limit: 20
         };
         options = $.extend({}, defaults, options || {});
 
-        const promise = new Promise(async function(resolve, reject) {
-            try {
-                const tokens = TagItSearch.tokenizer(item);
-                const instructions = await TagItSearch.parser(tokens);
-                let results = TagItSearch
-                .exec(instructions)
-                .sort((a,b) => a.name.localeCompare(b.name));
+        let promise = null;
 
-                if (options.limit > 0) {
-                    results = results.slice(0, options.limit);
+        if (item instanceof Function) {
+            promise = new Promise(async function(resolve, reject) {
+                try {
+                    let results = TagItIndex.Index.filter(item)
+                    .sort((a,b) => a.name.localeCompare(b.name));
+
+                    if (options.limit > 0) {
+                        results = results.slice(0, options.limit);
+                    }
+
+                    resolve(results);
+                } catch (e) {
+                    reject(e);
                 }
-
-                resolve(results);
-            } catch (e) {
-                reject(e);
-            }
-        });
+            });
+        } else {
+            promise = new Promise(async function(resolve, reject) {
+                try {
+                    const tokens = TagItSearch.tokenizer(item);
+                    const instructions = await TagItSearch.parser(tokens);
+                    let results = TagItSearch
+                    .exec(instructions)
+                    .sort((a,b) => a.name.localeCompare(b.name));
+    
+                    if (options.limit > 0) {
+                        results = results.slice(0, options.limit);
+                    }
+    
+                    resolve(results);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
 
         return promise;
     }

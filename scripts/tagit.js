@@ -284,9 +284,9 @@ Hooks.once('ready', async () => {
 
     game.modules.get(mod).api = {
         search: TagItSearch.search,
-        packCache: TagItPackCache,
-        index: TagItIndex,
-        search2: TagItSearch.search2
+        find: TagItSearch.find
+//        packCache: TagItPackCache,
+//        index: TagItIndex,
     };
 
     await TagIt.migrateFrom02();
