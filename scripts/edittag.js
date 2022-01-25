@@ -222,7 +222,7 @@ export class EditTag extends FormApplication {
     modifyTag(entity, oldTag, newTag) {
         let tags = entity.getFlag(mod, 'tags');
 
-        if (oldTag.sort === newTag.sort && oldTag.tag === newTag.tag && oldTag.color?.tag === newTag.color?.tag && oldTag.color?.text === newTag.color?.text && oldTag.meta === newTag.meta && oldTag.displayMeta === newTag.displayMeta) {
+        if (oldTag.sort === newTag?.sort && oldTag.tag === newTag?.tag && oldTag.color?.tag === newTag?.color?.tag && oldTag.color?.text === newTag?.color?.text && oldTag.meta === newTag?.meta && oldTag.displayMeta === newTag?.displayMeta) {
             // No change to tag
             return;
         }
