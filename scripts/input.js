@@ -1,5 +1,6 @@
 import { Settings, mod } from "./settings.js";
 import { TagItSearch } from './search.js';
+import { TagItIndex } from "./index.js";
 
 export class TagItInput {
     /**
@@ -81,6 +82,16 @@ export class TagItInput {
             delete tag.color;
         }
 
+        const sort = $(span).attr('data-sort');
+        if (sort) {
+            tag.sort = sort;
+        }
+
+        const displayMeta = $(span).attr('data-display-meta');
+        if (displayMeta !== undefined) {
+            tag.displayMeta = displayMeta == "true";
+        }
+
         
         return tag;
     }
@@ -155,24 +166,26 @@ export class TagItInput {
         } else {
             text = `${tag.tag}`;
         }
-        let otherTag = null;
-        const otherItems = await TagItSearch.search(tag.tag, {limit:1});
-        
-        if (otherItems.length > 0) {
-            otherTag = otherItems[0].tags.filter(a => a.tag === tag.tag)[0];
-        }
-        
 
         const ele = $('<span>')
         .addClass('tagit')
         .addClass('tag')
         .text(text);
 
-        let color = game.settings.get(mod, 'defaultColor').tag;
+        const color = tag.color ?? game.settings.get(mod, 'defaultColor').tag;
+        const otherTag = TagItIndex.Index.find(a => a.tags.some(b => b.tag === tag.tag && b.meta === tag.meta))?.tags.find(a => a.tag === tag.tag && a.meta === tag.meta);
 
-        if (otherTag && otherTag.color) {
+        if (!tag.color && otherTag && otherTag.color) {
             color.tag = otherTag.color.tag;
             color.text = otherTag.color.text;
+        }
+
+        if (otherTag && otherTag.sort) {
+            $(ele).attr('data-sort', otherTag.sort);
+        }
+
+        if (otherTag && otherTag.displayMeta !== undefined) {
+            $(ele).attr('data-display-meta', otherTag.displayMeta);
         }
 
         $(ele)

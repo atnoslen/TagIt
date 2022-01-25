@@ -123,7 +123,7 @@ export class SettingsForm extends FormApplication {
 
         $(`#taginput${_this.appId}`, html)
         .on('keyup', function(event) {
-            const text = $(this)
+            let text = $(this)
             .val()
             .toLowerCase()
             .trim();
@@ -131,7 +131,13 @@ export class SettingsForm extends FormApplication {
             let tags = _this.tags;
 
             if (text.length > 0) {
-                tags = tags.filter(a => a.tag.toLowerCase().includes(text));
+                text = text.split(":");
+                if (text.length == 1) {
+                    tags = tags.filter(a => a.tag.toLowerCase().includes(text[0]) || a.meta?.toLowerCase().includes(text[0]));
+                } else if (text.length == 2) {
+                    tags = tags.filter(a => a.tag.toLowerCase().includes(text[1]) && a.meta?.toLowerCase().includes(text[0]));
+                }
+                
             }
 
             _this.loadContainer(tags);
