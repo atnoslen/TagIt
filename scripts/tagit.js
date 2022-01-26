@@ -38,11 +38,11 @@ class TagIt extends FormApplication {
     async getData() {
         const data = super.getData();
 
-        this.tags = this.entity.getFlag(mod, 'tags');
+        this.tags = this.entity.getFlag(mod, 'tags') ?? [];
 
         if (this.entity.documentName === 'Actor' && this.entity.isToken) {
-            this.tags = this.entity.token.getFlag(mod, 'tags');
-            this.readOnlyTags = this.entity.getFlag(mod, 'tags');
+            this.tags = this.entity.token.getFlag(mod, 'tags') ?? [];
+            this.readOnlyTags = this.entity.getFlag(mod, 'tags') ?? [];
         }
 
         this.tagcache = await TagItTagManager.getUsedTags();
