@@ -848,12 +848,15 @@ Hooks.once("init", function() {
         `modules/${mod}/templates/search-options.html`
     ]
 
-    console.log(loadTemplates(partials));
-});
-
-Hooks.once('ready', async () => {
-    window.addEventListener('keypress', (e) => {
-        if (e.shiftKey && e.ctrlKey && e.code === 'KeyF') {
+    game.keybindings.register("tagit", "startSearch", {
+        name: "Start Search",
+        hint: "Keybinding for opening the search window",
+        textInput: true,
+        editable: [{
+            key: "KeyF",
+            modifiers: ["Shift", "Control"]
+        }],
+        onDown: () => {
             if (form === null) {
                 form = new TagItSearch();
             }
@@ -861,6 +864,9 @@ Hooks.once('ready', async () => {
             if (!(form.rendered)) {
                 form.render(true);
             }
-        }
+        },
+        precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
     });
+
+    console.log(loadTemplates(partials));
 });
