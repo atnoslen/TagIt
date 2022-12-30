@@ -2,8 +2,8 @@
 	"name": "tagit",
 	"title": "TagIt!",
 	"description": "Adds tags to Journals and Compendiums",
-	"version": "0.2.0",
-	"author": "atnoslen",
+	"version": "0.2.1",
+	"author": "atnoslen, burndaflame",
   "manifestPlusVersion": "1.0.0",
 	"esmodules": [
         "./scripts/tagit.js",
@@ -14,9 +14,9 @@
     "./styles/tagit.css",
     "./styles/input.css"
   ],
-  "url": "https://github.com/atnoslen/TagIt",
-  "manifest": "https://github.com/TagIt/releases/latest/download/module.json",
-  "download": "https://github.com/TagIt/releases/latest/download/module.zip",
+  "url": "https://github.com/burndaflame/TagIt",
+  "manifest": "https://github.com/burndaflame/TagIt/releases/latest/download/module.json",
+  "download": "https://github.com/burndaflame/TagIt/releases/latest/download/module.zip",
   "languages": [
       {
         "lang": "en",
@@ -24,6 +24,6 @@
         "path": "languages/en.json"
       }
   ],
-  "minimumCoreVersion": "0.5.5",
-  "compatibleCoreVersion": "8.9"
+  "minimumCoreVersion": "9.268",
+  "compatibleCoreVersion": "9.268"
 }

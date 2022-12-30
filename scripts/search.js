@@ -31,9 +31,6 @@ export class TagItSearch extends FormApplication {
         const _this = this;
         const data = super.getData();
 
-        // _this.tagcache = await TagItTagManager.getUsedTags();
-
-        // data.tagcache = _this.tagcache;
         data.appId = this.appId;
 
         return data;
