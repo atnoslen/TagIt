@@ -2,28 +2,40 @@
 	"name": "tagit",
 	"title": "TagIt!",
 	"description": "Adds tags to Journals and Compendiums",
-	"version": "0.2.0",
-	"author": "atnoslen",
-  "manifestPlusVersion": "1.0.0",
+	"version": "0.2.2",
+	"authors": [
+		{
+			"name":"atnoslen",
+			"url":"https://github.com/atnoslen"
+		},
+		{
+			"name":"burndaflame",
+			"url":"https://github.com/burndaflame"
+		}
+	],
+	"manifestPlusVersion": "1.0.0",
 	"esmodules": [
-        "./scripts/tagit.js",
-        "./scripts/search.js",
-        "./scripts/packcache.js"
-  ],
-  "styles": [
-    "./styles/tagit.css",
-    "./styles/input.css"
-  ],
-  "url": "https://github.com/atnoslen/TagIt",
-  "manifest": "https://github.com/TagIt/releases/latest/download/module.json",
-  "download": "https://github.com/TagIt/releases/latest/download/module.zip",
-  "languages": [
-      {
-        "lang": "en",
-        "name": "English",
-        "path": "languages/en.json"
-      }
-  ],
-  "minimumCoreVersion": "0.5.5",
-  "compatibleCoreVersion": "8.9"
+		"./scripts/tagit.js",
+		"./scripts/search.js",
+		"./scripts/packcache.js"
+	],
+	"styles": [
+		"./styles/tagit.css",
+		"./styles/input.css"
+	],
+	"url": "https://github.com/burndaflame/TagIt",
+	"manifest": "https://github.com/burndaflame/TagIt/releases/download/latest/module.json",
+	"download": "https://github.com/burndaflame/TagIt/releases/download/latest/module.zip",
+	"languages": [
+		{
+			"lang": "en",
+			"name": "English",
+			"path": "languages/en.json"
+		}
+	],
+	"compatibility": {
+		"minimum": 10,
+		"verified": "10.291",
+		"maximum": 10
+	}
 }

@@ -6,9 +6,9 @@ export class TagItTagManager {
     static async getUsedTags() {
         let tags = new Set();
     
-        const journaltags = game.journal.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        const journaltags = game.journal.filter(a => a.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags
+            return a.flags.tagit.tags
             .filter(b => {
                 if (tags.has(b.tag)) {return false;}
                 tags.add(b.tag);
@@ -17,9 +17,9 @@ export class TagItTagManager {
         })
         .flat();
 
-        const scenetags = game.scenes.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        const scenetags = game.scenes.filter(a => a.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags
+            return a.flags.tagit.tags
             .filter(b => {
                 if (tags.has(b.tag)) {return false;}
                 tags.add(b.tag);
@@ -28,9 +28,9 @@ export class TagItTagManager {
         })
         .flat();
     
-        const actortags = game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        const actortags = game.actors.filter(a => a.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags
+            return a.flags.tagit.tags
             .filter(b => {
                 if (tags.has(b.tag)) {return false;}
                 tags.add(b.tag);
@@ -39,9 +39,9 @@ export class TagItTagManager {
         })
         .flat();
     
-        const itemtags = game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)
+        const itemtags = game.items.filter(a => a.flags?.tagit?.tags?.length > 0)
         .map(a => {
-            return a.data.flags.tagit.tags
+            return a.flags.tagit.tags
             .filter(b => {
                 if (tags.has(b.tag)) {return false;}
                 tags.add(b.tag);
@@ -50,10 +50,10 @@ export class TagItTagManager {
         })
         .flat();
 
-        const tokentags = game.scenes.filter(a => a.tokens.some(b => (!b.isLinked) && b.data.flags?.tagit?.tags?.length > 0))
+        const tokentags = game.scenes.filter(a => a.tokens.some(b => (!b.isLinked) && b.flags?.tagit?.tags?.length > 0))
         .flatMap(a => a.tokens.contents)
         .filter(a => !a.isLinked)
-        .map(a => a.data.flags.tagit.tags
+        .map(a => a.flags.tagit.tags
             .filter(b => {
                 if (tags.has(b.tag)) {return false;}
                 tags.add(b.tag);
@@ -131,19 +131,19 @@ export class TagItTagManager {
     static async removeAll() {
         const promises = [];
 
-        for (const document of game.journal.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+        for (const document of game.journal.filter(a => a.flags?.tagit?.tags?.length > 0)) {
             promises.push(document.unsetFlag(mod, 'tags'));
         }
 
-        for (const document of game.scenes.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+        for (const document of game.scenes.filter(a => a.flags?.tagit?.tags?.length > 0)) {
             promises.push(document.unsetFlag(mod, 'tags'));
         }
 
-        for (const document of game.actors.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+        for (const document of game.actors.filter(a => a.flags?.tagit?.tags?.length > 0)) {
             promises.push(document.unsetFlag(mod, 'tags'));
         }
 
-        for (const document of game.items.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+        for (const document of game.items.filter(a => a.flags?.tagit?.tags?.length > 0)) {
             promises.push(document.unsetFlag(mod, 'tags'));
         }
 
@@ -155,8 +155,8 @@ export class TagItTagManager {
             }
         }
 
-        for (const scene of game.scenes.filter(a => a.tokens.some(b => (!b.isLinked) && b.data.flags?.tagit?.tags?.length > 0))) {
-            for (const document of scene.tokens.filter(a => (!a.isLinked) && a.data.flags?.tagit?.tags?.length > 0)) {
+        for (const scene of game.scenes.filter(a => a.tokens.some(b => (!b.isLinked) && b.flags?.tagit?.tags?.length > 0))) {
+            for (const document of scene.tokens.filter(a => (!a.isLinked) && a.flags?.tagit?.tags?.length > 0)) {
                 promises.push(document.unsetFlag(mod, 'tags'));
             }
         }
