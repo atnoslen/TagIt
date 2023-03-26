@@ -49,7 +49,7 @@ class TagIt extends FormApplication {
         
         data.tags = this.tags.sort(tagsort);
         data.tagcache = this.tagcache;
-        data.flags = this.entity.data.flags;
+        data.flags = this.entity.flags;
         data.owner = game.user.id;
         data.isGM = game.user.isGM;
         data.appId = this.appId;
@@ -167,7 +167,7 @@ class TagIt extends FormApplication {
 
         const promises = [];
 
-        for (const document of game.journal.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+        for (const document of game.journal.filter(a => a.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
             const tags = document.getFlag('tagit','tags');
 
             for (let i = 0; i < tags.length; i++) {
@@ -179,7 +179,7 @@ class TagIt extends FormApplication {
             promises.push(document.setFlag('tagit','tags',tags));
         }
 
-        for (const document of game.scenes.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+        for (const document of game.scenes.filter(a => a.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
             const tags = document.getFlag('tagit','tags');
 
             for (let i = 0; i < tags.length; i++) {
@@ -191,7 +191,7 @@ class TagIt extends FormApplication {
             promises.push(document.setFlag('tagit','tags',tags));
         }
 
-        for (const document of game.actors.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+        for (const document of game.actors.filter(a => a.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
             const tags = document.getFlag('tagit','tags');
 
             for (let i = 0; i < tags.length; i++) {
@@ -203,7 +203,7 @@ class TagIt extends FormApplication {
             promises.push(document.setFlag('tagit','tags',tags));
         }
 
-        for (const document of game.items.filter(a => a.data.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
+        for (const document of game.items.filter(a => a.flags?.tagit?.tags?.some(b => typeof b === 'string'))) {
             const tags = document.getFlag('tagit','tags');
 
             for (let i = 0; i < tags.length; i++) {
@@ -235,7 +235,7 @@ class TagIt extends FormApplication {
         }
 
         for (const scene of game.scenes.filter(a => a.tokens.size > 0)) {
-            for (const document of scene.tokens.filter(a => a.data.flags?.tagit?.tags?.length > 0)) {
+            for (const document of scene.tokens.filter(a => a.flags?.tagit?.tags?.length > 0)) {
                 const tags = document.getFlag('tagit','tags');
 
                 for (let i = 0; i < tags.length; i++) {

@@ -74,11 +74,11 @@ export class TagItIndex {
                         id: document.id,
                         name: document.name,
                         documentName: document.documentName,
-                        tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags.sort(tagsort) :
+                        tags: (document.flags?.tagit?.tags?.length > 0) ?
+                            document.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
-                        img: document.data.img
+                        img: document.img
                     };
                 })
             );
@@ -91,11 +91,11 @@ export class TagItIndex {
                         id: document.id,
                         name: document.name,
                         documentName: document.documentName,
-                        tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags.sort(tagsort) :
+                        tags: (document.flags?.tagit?.tags?.length > 0) ?
+                            document.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
-                        img: document.data.thumb
+                        img: document.thumb
                     };
                 })
             );
@@ -108,11 +108,11 @@ export class TagItIndex {
                         id: document.id,
                         name: document.name,
                         documentName: document.documentName,
-                        tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags.sort(tagsort) :
+                        tags: (document.flags?.tagit?.tags?.length > 0) ?
+                            document.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
-                        img: document.data.img
+                        img: document.img
                     };
                 })
             );
@@ -125,11 +125,11 @@ export class TagItIndex {
                         id: document.id,
                         name: document.name,
                         documentName: document.documentName,
-                        tags: (document.data.flags?.tagit?.tags?.length > 0) ?
-                            document.data.flags.tagit.tags.sort(tagsort) :
+                        tags: (document.flags?.tagit?.tags?.length > 0) ?
+                            document.flags.tagit.tags.sort(tagsort) :
                             [],
                         document: document,
-                        img: document.data.img
+                        img: document.img
                     };
                 })
             );
@@ -182,8 +182,8 @@ for (const document of TagItIndex.DocumentTypes) {
             id: app.id,
             name: app.name,
             documentName: app.documentName,
-            tags: (app.data.flags?.tagit?.tags?.length > 0) ?
-                app.data.flags.tagit.tags.sort(tagsort) :
+            tags: (app.flags?.tagit?.tags?.length > 0) ?
+                app.flags.tagit.tags.sort(tagsort) :
                 [],
             document: app,
             img: (app.documentName === "Scene") ? app.thumb : app.img
